@@ -5,7 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Layer — My Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<style>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const h = new Date().getHours();
+    const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    const el = document.getElementById('greeting');
+    if (el) el.textContent = g;
+  });
+</script>
   :root {
     --bg: #0f0f0f; --bg2: #141414; --bg3: #1e1e1e; --bg4: #262626;
     --card: #181818; --border: #242424; --border2: #333;
@@ -171,7 +178,7 @@
 
   <div class="header">
     <div class="logo">Layer.</div>
-    <div class="greeting" id="greeting">Good morning</div>
+    <div class="greeting" id="greeting"></div>
     <div class="athlete-name" id="athlete-name">Loading…</div>
     <div class="coach-line">Coach: <span id="coach-name">—</span></div>
   </div>
