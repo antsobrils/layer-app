@@ -26,23 +26,16 @@
     --amber: #d4890a;
     --amber-bg: #2a1e08;
     --amber-text: #f0a830;
+    --c-sleep: #4dc99a;
+    --c-motivation: #f0a830;
+    --c-stress: #f07070;
+    --c-readiness: #7B8FF0;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; display: flex; }
 
-  body {
-    background: var(--bg);
-    font-family: 'DM Sans', sans-serif;
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-  }
-
-  .sidebar {
-    width: 220px; background: var(--bg2); border-right: 1px solid var(--border);
-    padding: 28px 18px; display: flex; flex-direction: column;
-    flex-shrink: 0; position: fixed; height: 100vh;
-  }
+  .sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 18px; display: flex; flex-direction: column; flex-shrink: 0; position: fixed; height: 100vh; }
   .logo { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); margin-bottom: 36px; }
   .logo span { color: var(--green); }
   .nav-section { margin-bottom: 24px; }
@@ -61,7 +54,6 @@
   .coach-role { font-size: 11px; color: var(--text3); }
 
   .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 22px 32px 18px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
   .page-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text); }
   .page-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
@@ -72,30 +64,30 @@
   .chip-num.g { color: var(--green-text); }
   .chip-num.a { color: var(--amber-text); }
 
-  .content { padding: 24px 32px; flex: 1; max-width: 960px; }
+  .content { padding: 24px 32px; flex: 1; max-width: 1000px; }
   .date-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
   .date-text { font-size: 12px; color: var(--text3); font-weight: 500; letter-spacing: 0.03em; }
   .submitted-count { font-size: 12px; color: var(--text3); }
 
-  .athlete-card { background: var(--card); border-radius: 16px; margin-bottom: 10px; border: 1px solid var(--border); border-left: 3px solid var(--border2); overflow: visible; animation: fadeUp 0.35s ease forwards; opacity: 0; position: relative; }
+  /* ── Athlete card ── */
+  .athlete-card { background: var(--card); border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); border-left: 3px solid var(--border2); animation: fadeUp 0.35s ease forwards; opacity: 0; }
   .athlete-card:nth-child(1) { animation-delay: 0.03s; }
-  .athlete-card:nth-child(2) { animation-delay: 0.06s; }
-  .athlete-card:nth-child(3) { animation-delay: 0.09s; }
-  .athlete-card:nth-child(4) { animation-delay: 0.12s; }
+  .athlete-card:nth-child(2) { animation-delay: 0.07s; }
+  .athlete-card:nth-child(3) { animation-delay: 0.11s; }
   .athlete-card.flagged { border-left-color: var(--red); }
   .athlete-card.noted   { border-left-color: var(--amber); }
   .athlete-card.great   { border-left-color: var(--green); }
 
-  .card-inner { padding: 18px 20px; border-radius: 16px; overflow: hidden; }
+  .card-inner { padding: 18px 20px; }
 
   .athlete-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-  .big-av { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; flex-shrink: 0; letter-spacing: -0.02em; border: 2px solid transparent; }
-  .big-av.av-r { background: linear-gradient(135deg, #3a1818, #2a1010); color: var(--red-text); border-color: #3a2020; }
-  .big-av.av-a { background: linear-gradient(135deg, #2e2010, #1e1406); color: var(--amber-text); border-color: #3a2a10; }
-  .big-av.av-g { background: linear-gradient(135deg, #0d2a1c, #081a10); color: var(--green-text); border-color: #1a3a28; }
-  .big-av.av-d { background: linear-gradient(135deg, #262626, #1a1a1a); color: var(--text2); border-color: var(--border2); }
+  .big-av { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; flex-shrink: 0; border: 2px solid transparent; }
+  .big-av.av-r { background: linear-gradient(135deg,#3a1818,#2a1010); color: var(--red-text); border-color: #3a2020; }
+  .big-av.av-a { background: linear-gradient(135deg,#2e2010,#1e1406); color: var(--amber-text); border-color: #3a2a10; }
+  .big-av.av-g { background: linear-gradient(135deg,#0d2a1c,#081a10); color: var(--green-text); border-color: #1a3a28; }
+  .big-av.av-d { background: linear-gradient(135deg,#262626,#1a1a1a); color: var(--text2); border-color: var(--border2); }
 
-  .athlete-info { flex: 1; min-width: 0; }
+  .athlete-info { flex: 1; }
   .athlete-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
   .athlete-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .athlete-time { font-size: 12px; color: var(--text3); }
@@ -104,29 +96,28 @@
   .badge-r { background: var(--red-bg); color: var(--red-text); border: 1px solid #4a2020; }
   .badge-a { background: var(--amber-bg); color: var(--amber-text); border: 1px solid #3a2a10; }
   .badge-g { background: var(--green-bg); color: var(--green-text); border: 1px solid #1a3a28; }
-  .card-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-  .copy-btn { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 6px 12px; font-size: 11px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap; }
+  .card-actions { margin-left: auto; }
+  .copy-btn { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 6px 12px; font-size: 11px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
   .copy-btn:hover { background: var(--bg4); color: var(--text2); }
 
   .note-bubble { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 15px; font-size: 14px; color: var(--text2); font-style: italic; line-height: 1.65; margin-bottom: 14px; }
-  .note-empty { font-size: 12px; color: var(--text3); font-style: italic; margin-bottom: 12px; padding-left: 2px; }
+  .note-empty { font-size: 12px; color: var(--text3); font-style: italic; margin-bottom: 12px; }
 
-  /* ── Metrics with trend ── */
-  .metrics-row { display: flex; gap: 8px; }
+  /* ── Metrics row ── */
+  .metrics-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 
-  .metric {
-    flex: 1;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 8px 8px;
-    text-align: center;
-    position: relative;
+  .metrics-row {
+    display: flex;
+    cursor: pointer;
+    transition: background 0.15s;
   }
+  .metrics-row:hover { background: var(--bg3); }
 
-  .metric.alert { background: var(--red-bg); border-color: #3a2020; }
-  .metric.warn  { background: var(--amber-bg); border-color: #3a2a10; }
-  .metric.good  { background: var(--green-bg); border-color: #1a3a28; }
+  .metric { flex: 1; padding: 12px 8px; text-align: center; border-right: 1px solid var(--border); }
+  .metric:last-child { border-right: none; }
+  .metric.alert { background: var(--red-bg); }
+  .metric.warn  { background: var(--amber-bg); }
+  .metric.good  { background: var(--green-bg); }
 
   .m-label { font-size: 11px; font-weight: 500; color: var(--text3); display: block; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
   .metric.alert .m-label { color: #8a4040; }
@@ -138,65 +129,50 @@
   .metric.warn  .m-val { color: var(--amber-text); }
   .metric.good  .m-val { color: var(--green-text); }
 
-  /* Trend badge — clickable */
-  .trend-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    margin-top: 6px;
-    padding: 3px 7px;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    transition: opacity 0.15s;
-    position: relative;
-    z-index: 2;
-  }
-  .trend-badge:hover { opacity: 0.8; }
-  .trend-badge.up   { background: rgba(29,158,117,0.18); color: #4dc99a; }
-  .trend-badge.down { background: rgba(226,75,74,0.18);  color: #f07070; }
-  .trend-badge.flat { background: rgba(112,112,104,0.18); color: var(--text3); }
+  .trend-badge { display: inline-flex; align-items: center; gap: 3px; margin-top: 6px; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .trend-badge.up   { background: rgba(77,201,154,0.15); color: var(--green-text); }
+  .trend-badge.down { background: rgba(240,112,112,0.15); color: var(--red-text); }
+  .trend-badge.flat { background: rgba(112,112,104,0.15); color: var(--text3); }
 
-  /* Sparkline popup */
-  .spark-popup {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: 220px;
-    background: #1a1a1a;
-    border: 1px solid var(--border2);
-    border-radius: 12px;
-    padding: 14px;
-    z-index: 100;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  .metrics-cta { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: var(--bg3); font-size: 11px; color: var(--text3); cursor: pointer; transition: all 0.15s; border-top: 1px solid var(--border); }
+  .metrics-cta:hover { color: var(--text2); }
+  .cta-arrow { transition: transform 0.25s; display: inline-block; }
+  .cta-arrow.open { transform: rotate(180deg); }
+
+  /* ── Trend dropdown ── */
+  .trend-dropdown {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    border-top: none;
+  }
+  .trend-dropdown.open {
+    max-height: 440px;
+    border-top: 1px solid var(--border);
   }
 
-  .spark-popup.open { display: block; }
+  .trend-inner { padding: 20px; }
 
-  .spark-popup::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: var(--border2);
+  .td-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .td-title { font-size: 13px; font-weight: 600; color: var(--text2); }
+  .td-range { font-size: 11px; color: var(--text3); }
+
+  /* Stream toggles */
+  .stream-toggles { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stream-tog {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 99px;
+    border: 1px solid var(--border2); background: var(--bg3);
+    font-size: 11px; color: var(--text2); cursor: pointer;
+    transition: all 0.15s; user-select: none;
   }
+  .stream-tog.off { opacity: 0.35; }
+  .stream-tog:hover { border-color: var(--text3); }
+  .tog-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-  .sp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .sp-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
-  .sp-avg { font-size: 11px; color: var(--text3); }
-
-  .sp-chart { width: 100%; height: 60px; }
-
-  .sp-footer { display: flex; justify-content: space-between; margin-top: 8px; }
-  .sp-foot-item { font-size: 10px; color: var(--text3); text-align: center; }
-  .sp-foot-val { font-size: 12px; font-weight: 600; color: var(--text2); display: block; }
+  /* Chart container */
+  .chart-container { position: relative; width: 100%; height: 200px; }
+  canvas.trend-chart { width: 100% !important; height: 200px !important; }
 
   /* Not submitted */
   .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin: 20px 0 10px; }
@@ -204,8 +180,7 @@
   .ns-item { display: inline-flex; align-items: center; gap: 8px; margin-right: 12px; margin-bottom: 4px; }
   .ns-av { width: 26px; height: 26px; border-radius: 50%; background: var(--bg4); color: var(--text3); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
   .ns-name { font-size: 12px; color: var(--text3); }
-  .ns-copy { background: transparent; border: 1px solid var(--border2); border-radius: 6px; padding: 3px 8px; font-size: 10px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
-  .ns-copy:hover { color: var(--text2); }
+  .ns-copy { background: transparent; border: 1px solid var(--border2); border-radius: 6px; padding: 3px 8px; font-size: 10px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; }
 
   .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px; gap: 16px; }
   .spinner { width: 28px; height: 28px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -225,7 +200,7 @@
   <div class="nav-section">
     <div class="nav-label">Coach</div>
     <a class="nav-item active" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
-    <a class="nav-item" href="#"><div class="nav-dot"></div>Macro trends</a>
+    <a class="nav-item" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
     <a class="nav-item" href="#"><div class="nav-dot"></div>Athlete profiles</a>
     <a class="nav-item" href="#"><div class="nav-dot"></div>Race calendar</a>
   </div>
@@ -260,27 +235,26 @@
       <div class="stat-chip"><span class="chip-num g" id="great-count">0</span>&nbsp;feeling great</div>
     </div>
   </div>
-
   <div class="content" id="content">
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">Loading athlete check-ins…</div>
-    </div>
+    <div class="loading"><div class="spinner"></div><div class="loading-text">Loading athlete check-ins…</div></div>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
 const SUPABASE_URL = 'https://eaqlyzvggjewavyxpbwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
 const COACH_ID = '051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
 const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
 
-// Close all popups when clicking outside
-document.addEventListener('click', e => {
-  if (!e.target.closest('.metric')) {
-    document.querySelectorAll('.spark-popup.open').forEach(p => p.classList.remove('open'));
-  }
-});
+const STREAM_COLORS = {
+  sleep:      { line: '#4dc99a', fill: 'rgba(77,201,154,0.08)' },
+  motivation: { line: '#f0a830', fill: 'rgba(240,168,48,0.08)' },
+  stress:     { line: '#f07070', fill: 'rgba(240,112,112,0.08)' },
+  readiness:  { line: '#7B8FF0', fill: 'rgba(123,143,240,0.08)' },
+};
+
+const chartInstances = {};
 
 async function api(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers });
@@ -315,92 +289,156 @@ function metricClass(score) {
   return '';
 }
 
-// Calculate trend: compare today vs 7-day avg
-function calcTrend(history, todayScore) {
-  if (!history || history.length < 3) return null;
-  const recent = history.slice(-7);
-  const avg = recent.reduce((s, v) => s + v, 0) / recent.length;
+function calcTrend(hist, todayScore) {
+  if (!hist || hist.length < 3) return null;
+  const avg = hist.reduce((s,v) => s+v, 0) / hist.length;
   const diff = todayScore - avg;
-  const pct = Math.round((diff / avg) * 100);
+  const pct = Math.round(Math.abs(diff / avg) * 100);
   return { pct, avg: avg.toFixed(1), direction: diff > 0.2 ? 'up' : diff < -0.2 ? 'down' : 'flat' };
 }
 
-// Draw sparkline SVG — stock market style
-function drawSparkline(scores, color) {
-  if (!scores || scores.length < 2) return '';
-  const w = 192, h = 50;
-  const min = Math.min(...scores) - 0.5;
-  const max = Math.max(...scores) + 0.5;
-  const range = max - min || 1;
-  const pts = scores.map((v, i) => {
-    const x = (i / (scores.length - 1)) * w;
-    const y = h - ((v - min) / range) * h;
-    return [x, y];
+function toggleTrend(athleteId) {
+  const dropdown = document.getElementById(`trend-${athleteId}`);
+  const arrow    = document.getElementById(`arrow-${athleteId}`);
+  const isOpen   = dropdown.classList.contains('open');
+
+  // Close all others
+  document.querySelectorAll('.trend-dropdown.open').forEach(d => {
+    d.classList.remove('open');
   });
+  document.querySelectorAll('.cta-arrow.open').forEach(a => a.classList.remove('open'));
 
-  // Area path
-  const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
-  const areaPath = linePath + ` L${w},${h} L0,${h} Z`;
-
-  // Last point dot
-  const last = pts[pts.length - 1];
-  const first = pts[0];
-  const lineColor = scores[scores.length-1] >= scores[0] ? '#4dc99a' : '#f07070';
-  const areaColor = scores[scores.length-1] >= scores[0] ? 'rgba(29,158,117,0.08)' : 'rgba(226,75,74,0.08)';
-
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="sg-${color}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.15"/>
-        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <path d="${areaPath}" fill="url(#sg-${color})" stroke="none"/>
-    <path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3" fill="${lineColor}" stroke="#1a1a1a" stroke-width="1.5"/>
-  </svg>`;
+  if (!isOpen) {
+    dropdown.classList.add('open');
+    arrow.classList.add('open');
+    // Render chart after transition starts
+    setTimeout(() => renderTrendChart(athleteId), 50);
+  }
 }
 
-function togglePopup(id) {
-  // Close others first
-  document.querySelectorAll('.spark-popup.open').forEach(p => {
-    if (p.id !== id) p.classList.remove('open');
+function toggleStream(athleteId, category) {
+  const btn = document.getElementById(`tog-${athleteId}-${category}`);
+  btn.classList.toggle('off');
+  const chart = chartInstances[athleteId];
+  if (!chart) return;
+  const ds = chart.data.datasets.find(d => d.label === category);
+  if (ds) {
+    ds.hidden = btn.classList.contains('off');
+    chart.update();
+  }
+}
+
+function renderTrendChart(athleteId) {
+  const canvasId = `chart-${athleteId}`;
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const rawData = window._chartData && window._chartData[athleteId];
+  if (!rawData) return;
+
+  // Destroy existing
+  if (chartInstances[athleteId]) {
+    chartInstances[athleteId].destroy();
+  }
+
+  const { labels, streams } = rawData;
+
+  const datasets = Object.entries(streams).map(([cat, scores]) => {
+    const c = STREAM_COLORS[cat] || { line: '#888', fill: 'rgba(136,136,136,0.05)' };
+    return {
+      label: cat,
+      data: scores,
+      borderColor: c.line,
+      backgroundColor: c.fill,
+      borderWidth: 2,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      pointHoverBackgroundColor: c.line,
+      tension: 0.4,
+      fill: true,
+    };
   });
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
+
+  const chart = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e1e1e',
+          borderColor: '#333',
+          borderWidth: 1,
+          titleColor: '#b0ada6',
+          bodyColor: '#f0ede6',
+          padding: 10,
+          callbacks: {
+            title: items => items[0].label,
+            label: item => ` ${item.dataset.label}: ${item.raw}/5`,
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#505048',
+            font: { size: 10, family: 'DM Sans' },
+            maxTicksLimit: 8,
+            maxRotation: 0,
+          },
+          border: { color: '#242424' }
+        },
+        y: {
+          min: 0, max: 6,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#505048',
+            font: { size: 10, family: 'DM Sans' },
+            stepSize: 1,
+            callback: v => v === 0 || v === 6 ? '' : v,
+          },
+          border: { color: '#242424' }
+        }
+      }
+    }
+  });
+
+  chartInstances[athleteId] = chart;
 }
 
 async function loadDashboard() {
   const today = new Date().toISOString().split('T')[0];
-  const hour = new Date().getHours();
+  const hour  = new Date().getHours();
   document.getElementById('page-title').textContent =
     hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   const coaches = await api(`coaches?id=eq.${COACH_ID}`);
   if (coaches && coaches[0]) {
     document.getElementById('coach-name').textContent = coaches[0].name;
-    document.getElementById('coach-av').textContent = getInitials(coaches[0].name);
+    document.getElementById('coach-av').textContent   = getInitials(coaches[0].name);
   }
 
   const athletes = await api(`athletes?coach_id=eq.${COACH_ID}&order=name.asc`);
   if (!athletes || athletes.length === 0) {
-    document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-title">No athletes yet</div><div class="empty-sub">Add athletes to your roster to see their check-ins here.</div></div>`;
+    document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-title">No athletes yet</div></div>`;
     return;
   }
 
   const ids = athletes.map(a => a.id);
 
-  // Load today's responses
   const responses = await api(`checkin_responses?date=eq.${today}&athlete_id=in.(${ids.join(',')})&order=created_at.asc`);
 
-  // Load last 21 days of history for trends
-  const historyStart = new Date();
-  historyStart.setDate(historyStart.getDate() - 21);
-  const histStart = historyStart.toISOString().split('T')[0];
-  const history = await api(`checkin_responses?date=gte.${histStart}&date=lt.${today}&athlete_id=in.(${ids.join(',')})&order=date.asc`);
+  const histStart = new Date();
+  histStart.setDate(histStart.getDate() - 21);
+  const histStartStr = histStart.toISOString().split('T')[0];
+  const history = await api(`checkin_responses?date=gte.${histStartStr}&athlete_id=in.(${ids.join(',')})&order=date.asc`);
 
   const questions = await api(`questions?is_core=eq.true&order=created_at.asc`);
-  const scaleQs = questions.filter(q => q.type === 'scale');
+  const scaleQs   = questions.filter(q => q.type === 'scale');
 
   const byAthlete = {};
   responses.forEach(r => {
@@ -408,15 +446,38 @@ async function loadDashboard() {
     byAthlete[r.athlete_id].push(r);
   });
 
-  // Build history lookup: athleteId -> questionId -> [scores ordered by date]
-  const histByAthleteQ = {};
-  history.forEach(r => {
-    if (!histByAthleteQ[r.athlete_id]) histByAthleteQ[r.athlete_id] = {};
-    if (!histByAthleteQ[r.athlete_id][r.question_id]) histByAthleteQ[r.athlete_id][r.question_id] = [];
-    histByAthleteQ[r.athlete_id][r.question_id].push(r.score);
+  // Build chart data: for each athlete, build date labels + per-category score arrays
+  window._chartData = {};
+  athletes.forEach(a => {
+    const athHist = history.filter(r => r.athlete_id === a.id);
+    const dateMap = {};
+    athHist.forEach(r => {
+      if (!dateMap[r.date]) dateMap[r.date] = {};
+      const q = scaleQs.find(q => q.id === r.question_id);
+      if (q) dateMap[r.date][q.category] = r.score;
+    });
+    const sortedDates = Object.keys(dateMap).sort();
+    const labels  = sortedDates.map(d => {
+      const dt = new Date(d + 'T12:00:00');
+      return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const streams = {};
+    scaleQs.forEach(q => {
+      streams[q.category] = sortedDates.map(d => dateMap[d][q.category] ?? null);
+    });
+    window._chartData[a.id] = { labels, streams };
+
+    // Also build per-category history arrays for trend calc
+    a._histByQ = {};
+    scaleQs.forEach(q => {
+      a._histByQ[q.id] = athHist
+        .filter(r => r.question_id === q.id && r.date !== today)
+        .sort((a,b) => a.date > b.date ? 1 : -1)
+        .map(r => r.score);
+    });
   });
 
-  const submitted   = athletes.filter(a =>  byAthlete[a.id]);
+  const submitted    = athletes.filter(a =>  byAthlete[a.id]);
   const notSubmitted = athletes.filter(a => !byAthlete[a.id]);
   const order = { flagged:0, noted:1, great:2, clean:3 };
   submitted.sort((a,b) => order[getCategory(byAthlete[a.id])] - order[getCategory(byAthlete[b.id])]);
@@ -432,12 +493,12 @@ async function loadDashboard() {
   document.getElementById('flagged-count').textContent = flagged;
   document.getElementById('noted-count').textContent   = noted;
   document.getElementById('great-count').textContent   = great;
-  document.getElementById('page-sub').textContent = `${submitted.length} of ${athletes.length} athletes submitted today`;
+  document.getElementById('page-sub').textContent      = `${submitted.length} of ${athletes.length} athletes submitted today`;
 
   let html = '';
 
   if (submitted.length === 0) {
-    html += `<div class="empty-state"><div class="empty-title">No check-ins yet today</div><div class="empty-sub">Share check-in links with your athletes.<br>Their responses will appear here.</div></div>`;
+    html += `<div class="empty-state"><div class="empty-title">No check-ins yet today</div><div class="empty-sub">Share check-in links with your athletes.</div></div>`;
   }
 
   if (submitted.length > 0) {
@@ -455,52 +516,39 @@ async function loadDashboard() {
       const avClass = cat==='flagged'?'av-r':cat==='noted'?'av-a':cat==='great'?'av-g':'av-d';
 
       let badges = '';
-      if (scaleRs.some(r => r.score === 1))                              badges += `<span class="badge badge-r">Score of 1</span>`;
-      if (scaleRs.some(r => r.score === 2) && !scaleRs.some(r=>r.score===1)) badges += `<span class="badge badge-a">Low score</span>`;
-      if (textR && cat !== 'flagged')                                    badges += `<span class="badge badge-a">Note left</span>`;
-      if (cat === 'great')                                               badges += `<span class="badge badge-g">Feeling great</span>`;
+      if (scaleRs.some(r => r.score===1))                                   badges += `<span class="badge badge-r">Score of 1</span>`;
+      if (scaleRs.some(r => r.score===2) && !scaleRs.some(r=>r.score===1)) badges += `<span class="badge badge-a">Low score</span>`;
+      if (textR && cat!=='flagged')                                          badges += `<span class="badge badge-a">Note left</span>`;
+      if (cat==='great')                                                     badges += `<span class="badge badge-g">Feeling great</span>`;
 
-      const metrics = scaleQs.map((q, qi) => {
+      const metrics = scaleQs.map(q => {
         const r = scaleRs.find(r => r.question_id === q.id);
         if (!r) return '';
-        const cls = metricClass(r.score);
-        const catLabel = q.category.charAt(0).toUpperCase() + q.category.slice(1);
-        const hist = (histByAthleteQ[a.id] && histByAthleteQ[a.id][q.id]) || [];
+        const cls   = metricClass(r.score);
+        const label = q.category.charAt(0).toUpperCase() + q.category.slice(1);
+        const hist  = a._histByQ[q.id] || [];
         const trend = calcTrend(hist, r.score);
-        const popupId = `popup-${a.id.slice(0,8)}-${q.id.slice(0,8)}`;
-
-        // All scores for sparkline: history + today
-        const allScores = [...hist, r.score];
-
         let trendHtml = '';
         if (trend) {
-          const dir = trend.direction;
-          const sign = dir === 'up' ? '+' : dir === 'down' ? '' : '±';
-          const cls2 = dir === 'up' ? 'up' : dir === 'down' ? 'down' : 'flat';
-          const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '—';
-          trendHtml = `
-            <button class="trend-badge ${cls2}" onclick="event.stopPropagation(); togglePopup('${popupId}')">
-              ${arrow} ${sign}${trend.pct}%
-            </button>
-            <div class="spark-popup" id="${popupId}">
-              <div class="sp-header">
-                <span class="sp-title">${catLabel} · 21 days</span>
-                <span class="sp-avg">avg ${trend.avg}</span>
-              </div>
-              <div class="sp-chart">${drawSparkline(allScores, qi)}</div>
-              <div class="sp-footer">
-                <div class="sp-foot-item"><span class="sp-foot-val">${allScores[0]}</span>21d ago</div>
-                <div class="sp-foot-item"><span class="sp-foot-val">${trend.avg}</span>avg</div>
-                <div class="sp-foot-item"><span class="sp-foot-val">${r.score}</span>today</div>
-              </div>
-            </div>`;
+          const sign  = trend.direction==='up' ? '+' : trend.direction==='down' ? '-' : '±';
+          const arrow = trend.direction==='up' ? '▲' : trend.direction==='down' ? '▼' : '—';
+          const cls2  = trend.direction==='up' ? 'up' : trend.direction==='down' ? 'down' : 'flat';
+          trendHtml = `<span class="trend-badge ${cls2}">${arrow} ${sign}${trend.pct}%</span>`;
         }
-
         return `<div class="metric ${cls}">
-          <span class="m-label">${catLabel}</span>
+          <span class="m-label">${label}</span>
           <span class="m-val">${r.score}</span>
           ${trendHtml}
         </div>`;
+      }).join('');
+
+      // Stream toggles for chart
+      const toggles = scaleQs.map(q => {
+        const c = STREAM_COLORS[q.category] || {};
+        return `<button class="stream-tog" id="tog-${a.id}-${q.category}" onclick="toggleStream('${a.id}','${q.category}')">
+          <div class="tog-dot" style="background:${c.line}"></div>
+          ${q.category.charAt(0).toUpperCase() + q.category.slice(1)}
+        </button>`;
       }).join('');
 
       html += `
@@ -520,7 +568,27 @@ async function loadDashboard() {
               </div>
             </div>
             ${textR ? `<div class="note-bubble">"${textR.text_response}"</div>` : `<div class="note-empty">No note left today</div>`}
-            <div class="metrics-row">${metrics}</div>
+            <div class="metrics-wrap">
+              <div class="metrics-row" onclick="toggleTrend('${a.id}')">
+                ${metrics}
+              </div>
+              <div class="metrics-cta" onclick="toggleTrend('${a.id}')">
+                <span>View 21-day trends</span>
+                <span class="cta-arrow" id="arrow-${a.id}">▾</span>
+              </div>
+              <div class="trend-dropdown" id="trend-${a.id}">
+                <div class="trend-inner">
+                  <div class="td-header">
+                    <span class="td-title">All metrics · 21 days</span>
+                    <span class="td-range">Rolling daily scores</span>
+                  </div>
+                  <div class="stream-toggles">${toggles}</div>
+                  <div class="chart-container">
+                    <canvas id="chart-${a.id}" class="trend-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>`;
     });
@@ -543,7 +611,7 @@ async function loadDashboard() {
 
 loadDashboard().catch(err => {
   console.error(err);
-  document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-title">Something went wrong</div><div class="empty-sub">Please refresh the page.</div></div>`;
+  document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-title">Something went wrong</div><div class="empty-sub">Please refresh.</div></div>`;
 });
 </script>
 </body>
