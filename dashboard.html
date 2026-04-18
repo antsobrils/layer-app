@@ -199,8 +199,8 @@
   <div class="logo">Layer<span>.</span></div>
   <div class="nav-section">
     <div class="nav-label">Coach</div>
-    <a class="nav-item active" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
-    <a class="nav-item" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
+    <a class="nav-item active" id="nav-roster" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
+    <a class="nav-item" id="nav-macro" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
     <a class="nav-item" href="#"><div class="nav-dot"></div>Athlete profiles</a>
     <a class="nav-item" href="#"><div class="nav-dot"></div>Race calendar</a>
   </div>
@@ -242,9 +242,19 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
+// Preserve coach ID in nav links
+const _params = new URLSearchParams(window.location.search);
+const _coachParam = _params.get('coach');
+if (_coachParam) {
+  document.getElementById('nav-roster').href = `dashboard.html?coach=${_coachParam}`;
+  document.getElementById('nav-macro').href  = `macro.html?coach=${_coachParam}`;
+}
+
 const SUPABASE_URL = 'https://eaqlyzvggjewavyxpbwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
-const COACH_ID = '051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
+// Read coach ID from URL param ?coach=UUID, fallback to default for AJ
+const params = new URLSearchParams(window.location.search);
+const COACH_ID = params.get('coach') || '051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
 const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
 
 const STREAM_COLORS = {
