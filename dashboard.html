@@ -112,6 +112,41 @@
   .trend-badge.flat { background: rgba(112,112,104,0.15); color: var(--text3); }
 
   /* ── Card tabs ── */
+  /* ── Training block ── */
+  .training-block { padding: 12px 16px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+  .training-row { display: flex; gap: 8px; }
+
+  /* PMC stats — TSS CTL ATL Form */
+  .pmc-row { display: flex; gap: 6px; }
+  .pmc-stat { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 8px 6px; text-align: center; }
+  .pmc-label { font-size: 10px; font-weight: 600; color: var(--text3); display: block; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .pmc-val { font-size: 18px; font-weight: 700; color: var(--text2); display: inline; font-family: 'DM Serif Display', serif; }
+  .pmc-arrow { font-size: 11px; margin-left: 3px; }
+  .pmc-arrow.up   { color: var(--green-text); }
+  .pmc-arrow.down { color: var(--red-text); }
+  .pmc-stat.form-pos { background: var(--green-bg); border-color: #1a3a28; }
+  .pmc-stat.form-pos .pmc-label { color: #2a6a48; }
+  .pmc-stat.form-pos .pmc-val { color: var(--green-text); }
+  .pmc-stat.form-neg { background: var(--red-bg); border-color: #3a2020; }
+  .pmc-stat.form-neg .pmc-label { color: #8a4040; }
+  .pmc-stat.form-neg .pmc-val { color: var(--red-text); }
+
+  /* Workout cards */
+  .workout-card { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
+  .workout-card.today-card { background: var(--bg4); border-color: var(--border2); }
+  .wc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .wc-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .wc-connect { font-size: 10px; color: var(--text3); background: var(--bg4); border: 1px solid var(--border2); border-radius: 6px; padding: 2px 7px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .wc-connect:hover { color: var(--green-text); border-color: var(--green); }
+  .wc-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wc-stats { display: flex; gap: 10px; }
+  .wc-stat { display: flex; flex-direction: column; }
+  .wcs-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .wcs-val { font-size: 12px; font-weight: 600; color: var(--text2); }
+  .wc-empty { font-size: 12px; color: var(--text3); font-style: italic; }
+
+  .training-source { font-size: 10px; color: var(--text3); text-align: right; margin-top: 2px; }
+
   .card-tabs { display: flex; border-top: 1px solid var(--border); }
   .card-tab {
     flex: 1; padding: 11px 8px; font-size: 12px; font-weight: 500;
@@ -587,6 +622,44 @@ async function loadDashboard() {
             </div>
             ${textR?`<div class="note-bubble">"${textR.text_response}"</div>`:`<div class="note-empty">No note left today</div>`}
             <div class="metrics-row">${metrics}</div>
+          </div>
+
+          <div class="training-block">
+            <div class="pmc-row">
+              <div class="pmc-stat">
+                <span class="pmc-label">TSS</span>
+                <span class="pmc-val">—</span>
+              </div>
+              <div class="pmc-stat">
+                <span class="pmc-label">CTL</span>
+                <span class="pmc-val">—</span><span class="pmc-arrow up" style="display:none">▲</span>
+              </div>
+              <div class="pmc-stat">
+                <span class="pmc-label">ATL</span>
+                <span class="pmc-val">—</span><span class="pmc-arrow down" style="display:none">▼</span>
+              </div>
+              <div class="pmc-stat">
+                <span class="pmc-label">Form</span>
+                <span class="pmc-val">—</span>
+              </div>
+            </div>
+            <div class="training-row">
+              <div class="workout-card">
+                <div class="wc-header">
+                  <span class="wc-label">Yesterday</span>
+                  <button class="wc-connect" onclick="alert('Training Peaks integration coming soon.')">Connect TP</button>
+                </div>
+                <div class="wc-empty">Connect Training Peaks to see yesterday's workout</div>
+              </div>
+              <div class="workout-card today-card">
+                <div class="wc-header">
+                  <span class="wc-label">Today · Prescribed</span>
+                  <button class="wc-connect" onclick="alert('Training Peaks integration coming soon.')">Connect TP</button>
+                </div>
+                <div class="wc-empty">Connect Training Peaks to see today's session</div>
+              </div>
+            </div>
+            <div class="training-source">Training Peaks · Vekta integration coming soon</div>
           </div>
 
           <div class="card-tabs">
