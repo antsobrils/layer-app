@@ -724,10 +724,16 @@ function switchTab(tab) {
   document.getElementById('tab-invite').classList.toggle('active', tab === 'invite');
   document.getElementById('panel-manual').style.display = tab === 'manual' ? 'block' : 'none';
   document.getElementById('panel-invite').style.display = tab === 'invite' ? 'block' : 'none';
+  if (tab === 'invite') {
+    const base = window.location.href.split('/dashboard')[0];
+    const inviteLink = `${base}/athlete_signup.html?coach=${COACH_ID}`;
+    document.getElementById('invite-link-text').textContent = inviteLink;
+  }
 }
 
 function copyInviteLink() {
-  const link = `${window.location.origin}/athlete_signup.html?coach=${COACH_ID}`;
+  const base = window.location.href.split('/dashboard')[0];
+  const link = `${base}/athlete_signup.html?coach=${COACH_ID}`;
   navigator.clipboard.writeText(link).then(() => {
     const btn = document.getElementById('invite-copy-btn');
     btn.textContent = 'Copied!';
