@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer — Coach Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #141414;
+    --bg3: #1e1e1e;
+    --bg4: #262626;
+    --card: #181818;
+    --border: #242424;
+    --border2: #333;
+    --text: #f0ede6;
+    --text2: #b0ada6;
+    --text3: #707068;
+    --green: #1D9E75;
+    --green-bg: #0d2a1c;
+    --green-text: #4dc99a;
+    --red: #E24B4A;
+    --red-bg: #2e1515;
+    --red-text: #f07070;
+    --amber: #d4890a;
+    --amber-bg: #2a1e08;
+    --amber-text: #f0a830;
+    --purple: #7B74E0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 28px 18px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: fixed;
+    height: 100vh;
+  }
+
+  .logo { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); margin-bottom: 36px; }
+  .logo span { color: var(--green); }
+
+  .nav-section { margin-bottom: 24px; }
+  .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; padding-left: 10px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 10px; border-radius: 8px;
+    font-size: 13px; color: var(--text3);
+    margin-bottom: 1px; cursor: pointer; text-decoration: none;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { color: var(--text2); background: var(--bg3); }
+  .nav-item.active { background: var(--bg3); color: var(--text); }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bg4); flex-shrink: 0; }
+  .nav-item.active .nav-dot { background: var(--green); }
+
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 16px; }
+  .coach-chip { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; }
+  .coach-av-wrap { position: relative; flex-shrink: 0; }
+  .coach-av {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--green) 0%, #0d6e50 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+  }
+  .online-dot { position: absolute; bottom: 1px; right: 1px; width: 8px; height: 8px; background: var(--green); border-radius: 50%; border: 2px solid var(--bg2); }
+  .coach-name { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.2; }
+  .coach-role { font-size: 11px; color: var(--text3); }
+
+  /* ── Main ── */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px 18px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg); z-index: 10;
+  }
+
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text); }
+  .page-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
+
+  .topbar-right { display: flex; gap: 8px; align-items: center; }
+  .stat-chip { background: var(--bg3); border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 7px; }
+  .chip-num { font-weight: 700; font-size: 13px; }
+  .chip-num.r { color: var(--red-text); }
+  .chip-num.g { color: var(--green-text); }
+  .chip-num.a { color: var(--amber-text); }
+
+  /* ── Content ── */
+  .content { padding: 24px 32px; flex: 1; max-width: 960px; }
+
+  .date-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .date-text { font-size: 12px; color: var(--text3); font-weight: 500; letter-spacing: 0.03em; }
+  .submitted-count { font-size: 12px; color: var(--text3); }
+
+  /* ── Athlete Card ── */
+  .athlete-card {
+    background: var(--card);
+    border-radius: 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border2);
+    overflow: hidden;
+    animation: fadeUp 0.35s ease forwards;
+    opacity: 0;
+  }
+
+  .athlete-card:nth-child(1) { animation-delay: 0.03s; }
+  .athlete-card:nth-child(2) { animation-delay: 0.06s; }
+  .athlete-card:nth-child(3) { animation-delay: 0.09s; }
+  .athlete-card:nth-child(4) { animation-delay: 0.12s; }
+  .athlete-card:nth-child(5) { animation-delay: 0.15s; }
+
+  .athlete-card.flagged { border-left-color: var(--red); }
+  .athlete-card.noted   { border-left-color: var(--amber); }
+  .athlete-card.great   { border-left-color: var(--green); }
+
+  .card-inner { padding: 18px 20px; }
+
+  /* Athlete header row */
+  .athlete-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* Big styled avatar */
+  .big-av {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: 700;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+    border: 2px solid transparent;
+  }
+
+  .big-av.av-r {
+    background: linear-gradient(135deg, #3a1818, #2a1010);
+    color: var(--red-text);
+    border-color: #3a2020;
+  }
+  .big-av.av-a {
+    background: linear-gradient(135deg, #2e2010, #1e1406);
+    color: var(--amber-text);
+    border-color: #3a2a10;
+  }
+  .big-av.av-g {
+    background: linear-gradient(135deg, #0d2a1c, #081a10);
+    color: var(--green-text);
+    border-color: #1a3a28;
+  }
+  .big-av.av-d {
+    background: linear-gradient(135deg, #262626, #1a1a1a);
+    color: var(--text2);
+    border-color: var(--border2);
+  }
+
+  .athlete-info { flex: 1; min-width: 0; }
+  .athlete-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .athlete-meta { display: flex; align-items: center; gap: 8px; }
+  .athlete-time { font-size: 12px; color: var(--text3); }
+
+  .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 600; letter-spacing: 0.01em; }
+  .badge-r { background: var(--red-bg); color: var(--red-text); border: 1px solid #4a2020; }
+  .badge-a { background: var(--amber-bg); color: var(--amber-text); border: 1px solid #3a2a10; }
+  .badge-g { background: var(--green-bg); color: var(--green-text); border: 1px solid #1a3a28; }
+
+  .card-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+  .copy-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { background: var(--bg4); color: var(--text2); }
+
+  /* Note bubble */
+  .note-bubble {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 14px;
+    color: var(--text2);
+    font-style: italic;
+    line-height: 1.65;
+    margin-bottom: 14px;
+  }
+
+  .note-empty {
+    font-size: 12px;
+    color: var(--text3);
+    font-style: italic;
+    margin-bottom: 12px;
+    padding-left: 2px;
+  }
+
+  /* Metrics */
+  .metrics-row { display: flex; gap: 8px; }
+
+  .metric {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .metric.alert { background: var(--red-bg); border-color: #3a2020; }
+  .metric.warn  { background: var(--amber-bg); border-color: #3a2a10; }
+  .metric.good  { background: var(--green-bg); border-color: #1a3a28; }
+
+  .m-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text3);
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+  }
+
+  .metric.alert .m-label { color: #8a4040; }
+  .metric.warn  .m-label { color: #7a5020; }
+  .metric.good  .m-label { color: #2a6a48; }
+
+  .m-val {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+    line-height: 1;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .metric.alert .m-val { color: var(--red-text); }
+  .metric.warn  .m-val { color: var(--amber-text); }
+  .metric.good  .m-val { color: var(--green-text); }
+
+  .m-sub {
+    font-size: 10px;
+    color: var(--text3);
+    display: block;
+    margin-top: 3px;
+  }
+
+  .metric.alert .m-sub { color: #6a3030; }
+  .metric.warn  .m-sub { color: #6a4018; }
+  .metric.good  .m-sub { color: #206040; }
+
+  /* Not submitted */
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin: 20px 0 10px; }
+
+  .not-submitted {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+  }
+
+  .ns-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 12px;
+    margin-bottom: 4px;
+  }
+
+  .ns-av {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bg4); color: var(--text3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+
+  .ns-name { font-size: 12px; color: var(--text3); }
+
+  .ns-copy {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 10px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .ns-copy:hover { color: var(--text2); border-color: var(--text3); }
+
+  /* Empty / loading */
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px; gap: 16px; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loading-text { font-size: 13px; color: var(--text3); }
+
+  .empty-state { text-align: center; padding: 60px 20px; }
+  .empty-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text2); margin-bottom: 8px; }
+  .empty-sub { font-size: 14px; color: var(--text3); line-height: 1.7; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">Layer<span>.</span></div>
+  <div class="nav-section">
+    <div class="nav-label">Coach</div>
+    <a class="nav-item active" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Macro trends</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Athlete profiles</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Race calendar</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Settings</div>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Question builder</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Integrations</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="coach-chip">
+      <div class="coach-av-wrap">
+        <div class="coach-av" id="coach-av">?</div>
+        <div class="online-dot"></div>
+      </div>
+      <div>
+        <div class="coach-name" id="coach-name">Loading…</div>
+        <div class="coach-role">Layer · Coach</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="page-title">Good morning</div>
+      <div class="page-sub" id="page-sub">Loading your roster…</div>
+    </div>
+    <div class="topbar-right">
+      <div class="stat-chip"><span class="chip-num r" id="flagged-count">0</span>&nbsp;flagged</div>
+      <div class="stat-chip"><span class="chip-num a" id="noted-count">0</span>&nbsp;notes</div>
+      <div class="stat-chip"><span class="chip-num g" id="great-count">0</span>&nbsp;feeling great</div>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading athlete check-ins…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://eaqlyzvggjewavyxpbwk.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
+  const COACH_ID = '051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+
+  async function api(path) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers });
+    return res.json();
+  }
+
+  function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+  }
+
+  function timeAgo(dateStr) {
+    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function copyLink(athleteId, name) {
+    const link = `${window.location.origin}/checkin_form.html?athlete=${athleteId}`;
+    navigator.clipboard.writeText(link).then(() => alert(`Link for ${name} copied!`));
+  }
+
+  function getCategory(rs) {
+    const scale = rs.filter(r => r.score !== null);
+    if (scale.some(r => r.score <= 2)) return 'flagged';
+    if (rs.some(r => r.text_response && r.text_response.trim())) return 'noted';
+    if (scale.length > 0 && scale.every(r => r.score >= 4)) return 'great';
+    return 'clean';
+  }
+
+  function metricClass(score) {
+    if (score <= 1) return 'alert';
+    if (score === 2) return 'warn';
+    if (score >= 4) return 'good';
+    return '';
+  }
+
+  async function loadDashboard() {
+    const today = new Date().toISOString().split('T')[0];
+    const hour = new Date().getHours();
+
+    document.getElementById('page-title').textContent =
+      hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+    const coaches = await api(`coaches?id=eq.${COACH_ID}`);
+    if (coaches && coaches[0]) {
+      document.getElementById('coach-name').textContent = coaches[0].name;
+      document.getElementById('coach-av').textContent = getInitials(coaches[0].name);
+    }
+
+    const athletes = await api(`athletes?coach_id=eq.${COACH_ID}&order=name.asc`);
+    if (!athletes || athletes.length === 0) {
+      document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-title">No athletes yet</div><div class="empty-sub">Add athletes to your roster to see their check-ins here.</div></div>`;
+      return;
+    }
+
+    const ids = athletes.map(a => a.id);
+    const responses = await api(`checkin_responses?date=eq.${today}&athlete_id=in.(${ids.join(',')})&order=created_at.asc`);
+    const questions = await api(`questions?is_core=eq.true&order=created_at.asc`);
+    const scaleQs = questions.filter(q => q.type === 'scale');
+
+    const byAthlete = {};
+    responses.forEach(r => {
+      if (!byAthlete[r.athlete_id]) byAthlete[r.athlete_id] = [];
+      byAthlete[r.athlete_id].push(r);
+    });
+
+    const submitted   = athletes.filter(a =>  byAthlete[a.id]);
+    const notSubmitted = athletes.filter(a => !byAthlete[a.id]);
+    const order = { flagged:0, noted:1, great:2, clean:3 };
+    submitted.sort((a,b) => order[getCategory(byAthlete[a.id])] - order[getCategory(byAthlete[b.id])]);
+
+    let flagged=0, noted=0, great=0;
+    submitted.forEach(a => {
+      const c = getCategory(byAthlete[a.id]);
+      if (c==='flagged') flagged++;
+      if (c==='noted')   noted++;
+      if (c==='great')   great++;
+    });
+
+    document.getElementById('flagged-count').textContent = flagged;
+    document.getElementById('noted-count').textContent   = noted;
+    document.getElementById('great-count').textContent   = great;
+    document.getElementById('page-sub').textContent      = `${submitted.length} of ${athletes.length} athletes submitted today`;
+
+    let html = '';
+
+    if (submitted.length === 0) {
+      html += `<div class="empty-state"><div class="empty-title">No check-ins yet today</div><div class="empty-sub">Share check-in links with your athletes.<br>Their responses will appear here.</div></div>`;
+    }
+
+    if (submitted.length > 0) {
+      html += `<div class="date-row">
+        <span class="date-text">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
+        <span class="submitted-count">${submitted.length} submitted</span>
+      </div>`;
+
+      submitted.forEach(a => {
+        const rs  = byAthlete[a.id];
+        const cat = getCategory(rs);
+        const scaleRs = rs.filter(r => r.score !== null);
+        const textR   = rs.find(r => r.text_response && r.text_response.trim());
+        const latest  = rs.reduce((x,y) => x.created_at > y.created_at ? x : y).created_at;
+
+        const avClass = cat==='flagged'?'av-r' : cat==='noted'?'av-a' : cat==='great'?'av-g' : 'av-d';
+
+        let badges = '';
+        if (scaleRs.some(r => r.score === 1))       badges += `<span class="badge badge-r">Score of 1</span>`;
+        if (scaleRs.some(r => r.score === 2) && !scaleRs.some(r => r.score===1)) badges += `<span class="badge badge-a">Low score</span>`;
+        if (textR && cat !== 'flagged')              badges += `<span class="badge badge-a">Note left</span>`;
+        if (cat === 'great')                         badges += `<span class="badge badge-g">Feeling great</span>`;
+
+        const metrics = scaleQs.map(q => {
+          const r = scaleRs.find(r => r.question_id === q.id);
+          if (!r) return '';
+          const cls = metricClass(r.score);
+          const catLabel = q.category.charAt(0).toUpperCase() + q.category.slice(1);
+          return `<div class="metric ${cls}">
+            <span class="m-label">${catLabel}</span>
+            <span class="m-val">${r.score}</span>
+            <span class="m-sub">out of 5</span>
+          </div>`;
+        }).join('');
+
+        html += `
+          <div class="athlete-card ${cat}">
+            <div class="card-inner">
+              <div class="athlete-header">
+                <div class="big-av ${avClass}">${getInitials(a.name)}</div>
+                <div class="athlete-info">
+                  <div class="athlete-name">${a.name}</div>
+                  <div class="athlete-meta">
+                    <span class="athlete-time">${timeAgo(latest)}</span>
+                    <div class="badges">${badges}</div>
+                  </div>
+                </div>
+                <div class="card-actions">
+                  <button class="copy-btn" onclick="copyLink('${a.id}','${a.name}')">Copy link</button>
+                </div>
+              </div>
+              ${textR
+                ? `<div class="note-bubble">"${textR.text_response}"</div>`
+                : `<div class="note-empty">No note left today</div>`}
+              <div class="metrics-row">${metrics}</div>
+            </div>
+          </div>`;
+      });
+    }
+
+    if (notSubmitted.length > 0) {
+      html += `<div class="section-label">Not yet submitted · ${notSubmitted.length}</div>
+        <div class="not-submitted">
+          ${notSubmitted.map(a => `
+            <span class="ns-item">
+              <div class="ns-av">${getInitials(a.name)}</div>
+              <span class="ns-name">${a.name}</span>
+              <button class="ns-copy" onclick="copyLink('${a.id}','${a.name}')">Copy link</button>
+            </span>`).join('')}
+        </div>`;
+    }
+
+    document.getElementById('content').innerHTML = html;
+  }
+
+  loadDashboard().catch(err => {
+    console.error(err);
+    document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-title">Something went wrong</div><div class="empty-sub">Please refresh the page.</div></div>`;
+  });
+</script>
+</body>
+</html>
