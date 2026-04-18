@@ -49,6 +49,48 @@
   }
   .checkin-btn:hover { background: #18875f; }
 
+  /* Urgent check-in prompt — shown when not yet done */
+  .checkin-prompt {
+    background: #0d2a1c;
+    border: 1px solid #1a3a28;
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s ease forwards;
+  }
+  .cp-icon { font-size: 36px; margin-bottom: 16px; }
+  .cp-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); margin-bottom: 8px; }
+  .cp-sub { font-size: 14px; color: var(--text3); line-height: 1.6; margin-bottom: 24px; max-width: 320px; margin-left: auto; margin-right: auto; }
+  .cp-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--green); color: #fff; border: none; border-radius: 14px;
+    padding: 16px 32px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; text-decoration: none; transition: all 0.2s;
+    box-shadow: 0 0 0 0 rgba(29,158,117,0.4);
+    animation: pulse 2s ease infinite;
+  }
+  .cp-btn:hover { background: #18875f; animation: none; }
+  .cp-skip { display: block; margin-top: 14px; font-size: 12px; color: var(--text3); cursor: pointer; }
+  .cp-skip:hover { color: var(--text2); }
+
+  /* Profile section */
+  .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; }
+  .profile-field { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .profile-field:last-child { border-bottom: none; }
+  .pf-label { font-size: 12px; color: var(--text3); font-weight: 500; }
+  .pf-value { font-size: 13px; color: var(--text2); }
+  .pf-edit { background: none; border: 1px solid var(--border2); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .pf-edit:hover { color: var(--text2); border-color: var(--text3); }
+  .pf-input { background: var(--bg3); border: 1.5px solid var(--green); border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; width: 180px; }
+  .pf-save { background: var(--green); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-left: 6px; }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(29,158,117,0.4); }
+    70%  { box-shadow: 0 0 0 12px rgba(29,158,117,0); }
+    100% { box-shadow: 0 0 0 0 rgba(29,158,117,0); }
+  }
+
   /* Section label */
   .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin: 20px 0 10px; }
 
@@ -291,22 +333,30 @@ async function init() {
     : `<div class="msg-empty">No messages yet. Send your coach a message below.</div>`;
 
   document.getElementById('main-content').innerHTML = `
-    <!-- Check-in status -->
-    <div class="checkin-card ${checkinDone?'done':''}">
-      <div class="checkin-icon ${checkinDone?'done':'pending'}">${checkinDone?'✓':'◎'}</div>
+    ${!checkinDone ? `
+    <!-- Urgent check-in prompt -->
+    <div class="checkin-prompt" id="checkin-prompt">
+      <div class="cp-icon">◎</div>
+      <div class="cp-title">Time to check in.</div>
+      <div class="cp-sub">Your coach is waiting on your update. It takes under 60 seconds — how are you feeling today?</div>
+      <a class="cp-btn" href="checkin_form.html?athlete=${ATHLETE_ID}">Start check-in →</a>
+      <span class="cp-skip" onclick="document.getElementById('checkin-prompt').style.display='none'">Skip for now</span>
+    </div>` : `
+    <!-- Done state -->
+    <div class="checkin-card done">
+      <div class="checkin-icon done">✓</div>
       <div class="checkin-info">
-        <div class="checkin-title">${checkinDone?'Check-in complete':'Daily check-in'}</div>
-        <div class="checkin-sub">${checkinDone?'Submitted today — great work.':'Takes under 60 seconds.'}</div>
+        <div class="checkin-title">Check-in complete</div>
+        <div class="checkin-sub">Submitted today — great work.</div>
       </div>
-      ${!checkinDone?`<a class="checkin-btn" href="checkin_form.html?athlete=${ATHLETE_ID}">Check in →</a>`:''}
-    </div>
+    </div>`}
 
     <!-- Today's scores -->
-    ${checkinDone ? `
+    ${checkinDone && scoresHtml.length > 0 ? `
     <div class="section-label">Today's scores</div>
     <div class="scores-card">
-      ${scoresHtml.length>0?`<div class="scores-grid">${scoresHtml}</div>`:'<div class="no-scores">No scores yet today.</div>'}
-      ${textR?`<div class="open-note">"${textR.text_response}"</div>`:''}
+      <div class="scores-grid">${scoresHtml}</div>
+      ${textR ? `<div class="open-note">"${textR.text_response}"</div>` : ''}
     </div>` : ''}
 
     <!-- 7-day trend -->
@@ -322,7 +372,7 @@ async function init() {
     </div>
 
     <!-- Messages -->
-    <div class="section-label">Messages with your coach ${unreadCount>0?`<span class="unread-pill">${unreadCount} new</span>`:''}</div>
+    <div class="section-label">Messages with your coach ${unreadCount > 0 ? `<span class="unread-pill">${unreadCount} new</span>` : ''}</div>
     <div class="messages-card">
       <div class="thread" id="athlete-thread">${msgsHtml}</div>
       <div class="compose-row">
@@ -331,10 +381,34 @@ async function init() {
       </div>
     </div>
 
-    <!-- Coach summary placeholder -->
+    <!-- Coach summary -->
     <div class="section-label">From your coach</div>
     <div class="summary-card">
       <div class="summary-empty">Your coach hasn't posted a weekly summary yet. Check back soon.</div>
+    </div>
+
+    <!-- Profile -->
+    <div class="section-label">Your profile</div>
+    <div class="profile-card">
+      <div class="profile-field">
+        <span class="pf-label">Name</span>
+        <span class="pf-value">${athlete.name}</span>
+      </div>
+      <div class="profile-field">
+        <span class="pf-label">Email</span>
+        <span class="pf-value">${athlete.email}</span>
+      </div>
+      <div class="profile-field" id="phone-field">
+        <span class="pf-label">Phone number</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="pf-value" id="phone-display">${athlete.phone || 'Not set'}</span>
+          <button class="pf-edit" onclick="editPhone('${athlete.phone||''}')">Edit</button>
+        </div>
+      </div>
+      <div class="profile-field">
+        <span class="pf-label">Morning reminder</span>
+        <span class="pf-value">${athlete.reminder_enabled ? athlete.reminder_time.slice(0,5) : 'Off'}</span>
+      </div>
     </div>
   `;
 
@@ -366,6 +440,31 @@ async function init() {
       }
     });
   }
+}
+
+async function editPhone(current) {
+  const field = document.getElementById('phone-field');
+  field.querySelector('.pf-value').style.display = 'none';
+  field.querySelector('.pf-edit').style.display = 'none';
+  const wrap = field.querySelector('div');
+  wrap.innerHTML += `<input class="pf-input" id="phone-input" type="tel" placeholder="+1 (555) 000-0000" value="${current}"/>
+    <button class="pf-save" onclick="savePhone()">Save</button>`;
+  document.getElementById('phone-input').focus();
+}
+
+async function savePhone() {
+  const val = document.getElementById('phone-input').value.trim();
+  await fetch(`${SUPABASE_URL}/rest/v1/athletes?id=eq.${ATHLETE_ID}`, {
+    method: 'PATCH',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: val })
+  });
+  document.getElementById('phone-display').textContent = val || 'Not set';
+  const field = document.getElementById('phone-field');
+  field.querySelector('.pf-value').style.display = '';
+  field.querySelector('.pf-edit').style.display = '';
+  field.querySelector('.pf-input').remove();
+  field.querySelector('.pf-save').remove();
 }
 
 init().catch(console.error);
