@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer — Messages</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f; --bg2: #141414; --bg3: #1e1e1e; --bg4: #262626;
+    --card: #181818; --border: #242424; --border2: #333;
+    --text: #f0ede6; --text2: #b0ada6; --text3: #707068;
+    --green: #1D9E75; --green-bg: #0d2a1c; --green-text: #4dc99a;
+    --red: #E24B4A; --red-bg: #2e1515; --red-text: #f07070;
+    --amber: #d4890a; --amber-bg: #2a1e08; --amber-text: #f0a830;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 18px; display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); margin-bottom: 36px; }
+  .logo span { color: var(--green); }
+  .nav-section { margin-bottom: 24px; }
+  .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; padding-left: 10px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--text3); margin-bottom: 1px; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+  .nav-item:hover { color: var(--text2); background: var(--bg3); }
+  .nav-item.active { background: var(--bg3); color: var(--text); }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bg4); flex-shrink: 0; }
+  .nav-item.active .nav-dot { background: var(--green); }
+  .unread-badge { margin-left: auto; background: var(--red); color: #fff; border-radius: 99px; font-size: 10px; font-weight: 700; padding: 1px 6px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 16px; }
+  .coach-chip { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; }
+  .coach-av-wrap { position: relative; flex-shrink: 0; }
+  .coach-av { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--green) 0%, #0d6e50 100%); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+  .online-dot { position: absolute; bottom: 1px; right: 1px; width: 8px; height: 8px; background: var(--green); border-radius: 50%; border: 2px solid var(--bg2); }
+  .coach-name { font-size: 13px; color: var(--text); font-weight: 500; }
+  .coach-role { font-size: 11px; color: var(--text3); }
+
+  /* Messages layout */
+  .msg-layout { flex: 1; display: flex; overflow: hidden; }
+
+  /* Athlete list */
+  .athlete-list { width: 280px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .list-header { padding: 20px 18px 14px; border-bottom: 1px solid var(--border); }
+  .list-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
+  .list-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .athlete-items { flex: 1; overflow-y: auto; }
+  .athlete-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .athlete-item:hover { background: var(--bg3); }
+  .athlete-item.active { background: var(--bg3); border-left: 2px solid var(--green); }
+  .item-av { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; background: linear-gradient(135deg,#262626,#1a1a1a); color: var(--text2); border: 1px solid var(--border2); }
+  .item-av.has-unread { border-color: var(--green); }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .item-preview { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .item-time { font-size: 10px; color: var(--text3); }
+  .item-unread { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+  /* Thread area */
+  .thread-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Athlete overview header */
+  .athlete-overview { border-bottom: 1px solid var(--border); padding: 16px 24px; background: var(--bg2); flex-shrink: 0; }
+  .overview-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .ov-av { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; background: linear-gradient(135deg,#262626,#1a1a1a); color: var(--text2); border: 2px solid var(--border2); flex-shrink: 0; }
+  .ov-name { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
+  .ov-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .ov-actions { margin-left: auto; display: flex; gap: 8px; }
+  .ov-btn { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 6px 12px; font-size: 11px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-decoration: none; }
+  .ov-btn:hover { color: var(--text2); }
+  .overview-metrics { display: flex; gap: 8px; }
+  .ov-metric { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 8px; text-align: center; }
+  .ov-metric.alert { background: var(--red-bg); border-color: #3a2020; }
+  .ov-metric.warn  { background: var(--amber-bg); border-color: #3a2a10; }
+  .ov-metric.good  { background: var(--green-bg); border-color: #1a3a28; }
+  .ovm-label { font-size: 10px; color: var(--text3); display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .ov-metric.alert .ovm-label { color: #8a4040; }
+  .ov-metric.warn  .ovm-label { color: #7a5020; }
+  .ov-metric.good  .ovm-label { color: #2a6a48; }
+  .ovm-val { font-size: 18px; font-weight: 700; color: var(--text); font-family: 'DM Serif Display', serif; }
+  .ov-metric.alert .ovm-val { color: var(--red-text); }
+  .ov-metric.warn  .ovm-val { color: var(--amber-text); }
+  .ov-metric.good  .ovm-val { color: var(--green-text); }
+  .ovm-trend { font-size: 10px; display: block; margin-top: 2px; color: var(--text3); }
+  .ov-note { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 12px; color: var(--text2); font-style: italic; line-height: 1.5; margin-top: 10px; }
+  .no-checkin { font-size: 12px; color: var(--text3); font-style: italic; margin-top: 4px; }
+
+  /* Thread */
+  .thread-messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 68%; }
+  .msg.coach { align-self: flex-end; }
+  .msg.athlete { align-self: flex-start; }
+  .msg-bubble { padding: 11px 15px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
+  .msg.coach .msg-bubble { background: var(--green-bg); color: var(--green-text); border: 1px solid #1a3a28; border-bottom-right-radius: 4px; }
+  .msg.athlete .msg-bubble { background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); border-bottom-left-radius: 4px; }
+  .msg-time { font-size: 10px; color: var(--text3); margin-top: 4px; padding: 0 2px; }
+  .msg.coach .msg-time { text-align: right; }
+  .msg-empty { text-align: center; color: var(--text3); font-size: 14px; font-style: italic; padding: 40px 20px; }
+
+  /* Compose */
+  .thread-compose { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-end; }
+  .compose-input { flex: 1; background: var(--bg3); border: 1.5px solid var(--border2); border-radius: 12px; padding: 12px 16px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; resize: none; transition: border-color 0.2s; min-height: 46px; max-height: 120px; }
+  .compose-input:focus { border-color: var(--green); }
+  .compose-input::placeholder { color: var(--text3); }
+  .compose-send { background: var(--green); color: #fff; border: none; border-radius: 12px; padding: 12px 22px; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .compose-send:hover { background: #18875f; }
+
+  /* Empty state */
+  .empty-thread { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .empty-thread-inner { text-align: center; padding: 40px; }
+  .empty-thread-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text2); margin-bottom: 8px; }
+  .empty-thread-sub { font-size: 14px; color: var(--text3); line-height: 1.6; }
+
+  .loading-inline { padding: 20px; text-align: center; font-size: 13px; color: var(--text3); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">Layer<span>.</span></div>
+  <div class="nav-section">
+    <div class="nav-label">Coach</div>
+    <a class="nav-item" id="nav-roster" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
+    <a class="nav-item active" id="nav-messages" href="messages.html"><div class="nav-dot"></div>Messages</a>
+    <a class="nav-item" id="nav-macro" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Athlete profiles</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Race calendar</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Settings</div>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Question builder</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Integrations</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="coach-chip">
+      <div class="coach-av-wrap">
+        <div class="coach-av" id="coach-av">?</div>
+        <div class="online-dot"></div>
+      </div>
+      <div>
+        <div class="coach-name" id="coach-name">Loading…</div>
+        <div class="coach-role">Layer · Coach</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="msg-layout">
+  <!-- Athlete list -->
+  <div class="athlete-list">
+    <div class="list-header">
+      <div class="list-title">Messages</div>
+      <div class="list-sub" id="list-sub">Loading athletes…</div>
+    </div>
+    <div class="athlete-items" id="athlete-items">
+      <div class="loading-inline">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Thread area -->
+  <div class="thread-area" id="thread-area">
+    <div class="empty-thread">
+      <div class="empty-thread-inner">
+        <div class="empty-thread-title">Select an athlete</div>
+        <div class="empty-thread-sub">Choose an athlete from the list to view your conversation and their latest check-in.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://eaqlyzvggjewavyxpbwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
+
+const _p = new URLSearchParams(window.location.search);
+const COACH_ID    = _p.get('coach')   || '051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
+const OPEN_ATHLETE = _p.get('athlete') || null;
+
+if (_p.get('coach')) {
+  document.getElementById('nav-roster').href   = `dashboard.html?coach=${COACH_ID}`;
+  document.getElementById('nav-messages').href = `messages.html?coach=${COACH_ID}`;
+  document.getElementById('nav-macro').href    = `macro.html?coach=${COACH_ID}`;
+}
+
+const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+
+let allAthletes = [], allQuestions = [], currentAthleteId = null;
+
+async function api(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers });
+  return res.json();
+}
+
+function getInitials(name) { return name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+function timeStr(d) { return new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function fullDate(d) { return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function metricClass(s) { return s<=1?'alert':s===2?'warn':s>=4?'good':''; }
+
+async function init() {
+  const coaches = await api(`coaches?id=eq.${COACH_ID}`);
+  if (coaches&&coaches[0]) { document.getElementById('coach-name').textContent=coaches[0].name; document.getElementById('coach-av').textContent=getInitials(coaches[0].name); }
+
+  allAthletes  = await api(`athletes?coach_id=eq.${COACH_ID}&order=name.asc`) || [];
+  allQuestions = await api(`questions?is_core=eq.true&order=created_at.asc`) || [];
+
+  document.getElementById('list-sub').textContent = `${allAthletes.length} athlete${allAthletes.length!==1?'s':''}`;
+
+  if (!allAthletes.length) {
+    document.getElementById('athlete-items').innerHTML = `<div class="loading-inline">No athletes yet.</div>`;
+    return;
+  }
+
+  // Load last message per athlete for preview
+  const ids = allAthletes.map(a=>a.id);
+  const lastMsgs = await api(`messages?coach_id=eq.${COACH_ID}&athlete_id=in.(${ids.join(',')})&order=created_at.desc`);
+  const unreadMsgs = await api(`messages?coach_id=eq.${COACH_ID}&athlete_id=in.(${ids.join(',')})&sender_role=eq.athlete&read=eq.false`);
+
+  const lastByAthlete = {};
+  lastMsgs.forEach(m => { if(!lastByAthlete[m.athlete_id]) lastByAthlete[m.athlete_id]=m; });
+  const unreadByAthlete = {};
+  unreadMsgs.forEach(m => { unreadByAthlete[m.athlete_id]=(unreadByAthlete[m.athlete_id]||0)+1; });
+
+  const html = allAthletes.map(a => {
+    const last = lastByAthlete[a.id];
+    const unread = unreadByAthlete[a.id]||0;
+    const preview = last ? (last.sender_role==='coach'?'You: ':'')+last.content : 'No messages yet';
+    const timeAgo = last ? new Date(last.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    return `<div class="athlete-item" id="item-${a.id}" onclick="openThread('${a.id}')">
+      <div class="item-av ${unread?'has-unread':''}">${getInitials(a.name)}</div>
+      <div class="item-info">
+        <div class="item-name">${a.name}</div>
+        <div class="item-preview">${preview}</div>
+      </div>
+      <div class="item-meta">
+        <span class="item-time">${timeAgo}</span>
+        ${unread?`<div class="item-unread"></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('athlete-items').innerHTML = html;
+
+  // Auto-open athlete if passed in URL
+  if (OPEN_ATHLETE) openThread(OPEN_ATHLETE);
+}
+
+async function openThread(athleteId) {
+  currentAthleteId = athleteId;
+
+  // Mark as active in list
+  document.querySelectorAll('.athlete-item').forEach(el=>el.classList.remove('active'));
+  const item = document.getElementById(`item-${athleteId}`);
+  if (item) item.classList.add('active');
+
+  const athlete = allAthletes.find(a=>a.id===athleteId);
+  if (!athlete) return;
+
+  // Load today's check-in
+  const today = new Date().toISOString().split('T')[0];
+  const responses = await api(`checkin_responses?date=eq.${today}&athlete_id=eq.${athleteId}&order=created_at.asc`);
+  const scaleQs = allQuestions.filter(q=>q.type==='scale');
+  const scaleRs = responses.filter(r=>r.score!==null);
+  const textR   = responses.find(r=>r.text_response&&r.text_response.trim());
+
+  const metricsHtml = scaleQs.map(q=>{
+    const r=scaleRs.find(r=>r.question_id===q.id);
+    if(!r) return `<div class="ov-metric"><span class="ovm-label">${q.category}</span><span class="ovm-val">—</span></div>`;
+    const cls=metricClass(r.score), label=q.category.charAt(0).toUpperCase()+q.category.slice(1);
+    return `<div class="ov-metric ${cls}"><span class="ovm-label">${label}</span><span class="ovm-val">${r.score}</span><span class="ovm-trend">/5</span></div>`;
+  }).join('');
+
+  const checkinTime = responses.length>0 ? `Submitted ${timeStr(responses[responses.length-1].created_at)}` : 'No check-in today yet';
+
+  // Mark messages as read
+  await fetch(`${SUPABASE_URL}/rest/v1/messages?coach_id=eq.${COACH_ID}&athlete_id=eq.${athleteId}&sender_role=eq.athlete&read=eq.false`, {
+    method: 'PATCH',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ read: true })
+  });
+
+  // Remove unread dot from list item
+  const unreadDot = item && item.querySelector('.item-unread');
+  if (unreadDot) unreadDot.remove();
+  const avEl = item && item.querySelector('.item-av');
+  if (avEl) avEl.classList.remove('has-unread');
+
+  // Load messages
+  const msgs = await api(`messages?coach_id=eq.${COACH_ID}&athlete_id=eq.${athleteId}&order=created_at.asc`);
+
+  const msgsHtml = msgs&&msgs.length>0
+    ? msgs.map(m=>`<div class="msg ${m.sender_role}"><div class="msg-bubble">${m.content}</div><div class="msg-time">${fullDate(m.created_at)}</div></div>`).join('')
+    : `<div class="msg-empty">No messages yet. Start the conversation below.</div>`;
+
+  document.getElementById('thread-area').innerHTML = `
+    <div class="athlete-overview">
+      <div class="overview-top">
+        <div class="ov-av">${getInitials(athlete.name)}</div>
+        <div>
+          <div class="ov-name">${athlete.name}</div>
+          <div class="ov-sub">${checkinTime}</div>
+        </div>
+        <div class="ov-actions">
+          <a class="ov-btn" href="dashboard.html?coach=${COACH_ID}">← Roster</a>
+          <button class="ov-btn" onclick="navigator.clipboard.writeText('${location.origin}/checkin_form.html?athlete=${athleteId}').then(()=>alert('Check-in link copied!'))">Copy check-in link</button>
+        </div>
+      </div>
+      ${responses.length>0
+        ? `<div class="overview-metrics">${metricsHtml}</div>${textR?`<div class="ov-note">"${textR.text_response}"</div>`:''}`
+        : `<div class="no-checkin">No check-in submitted today yet.</div>`}
+    </div>
+    <div class="thread-messages" id="thread-msgs">${msgsHtml}</div>
+    <div class="thread-compose">
+      <textarea class="compose-input" id="compose-input" placeholder="Message ${athlete.name.split(' ')[0]}… (Enter to send)" rows="1" onkeydown="handleKey(event)"></textarea>
+      <button class="compose-send" onclick="sendMsg()">Send</button>
+    </div>`;
+
+  // Scroll to bottom
+  const msgEl = document.getElementById('thread-msgs');
+  if (msgEl) msgEl.scrollTop = msgEl.scrollHeight;
+
+  // Focus compose
+  setTimeout(()=>{ const el=document.getElementById('compose-input'); if(el) el.focus(); },100);
+}
+
+async function sendMsg() {
+  if (!currentAthleteId) return;
+  const input = document.getElementById('compose-input');
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = '';
+
+  // Optimistic UI
+  const thread = document.getElementById('thread-msgs');
+  const emptyMsg = thread.querySelector('.msg-empty');
+  if (emptyMsg) emptyMsg.remove();
+  const msgEl = document.createElement('div');
+  msgEl.className = 'msg coach';
+  msgEl.innerHTML = `<div class="msg-bubble">${content}</div><div class="msg-time">Just now</div>`;
+  thread.appendChild(msgEl);
+  thread.scrollTop = thread.scrollHeight;
+
+  await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ coach_id: COACH_ID, athlete_id: currentAthleteId, sender_role: 'coach', content, read: false })
+  });
+
+  // Update preview in list
+  const item = document.getElementById(`item-${currentAthleteId}`);
+  if (item) {
+    const preview = item.querySelector('.item-preview');
+    if (preview) preview.textContent = `You: ${content}`;
+    const time = item.querySelector('.item-time');
+    if (time) time.textContent = 'Just now';
+  }
+}
+
+function handleKey(e) {
+  if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
