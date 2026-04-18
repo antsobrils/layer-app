@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f; --card: #161616; --border: #242424; --border2: #333;
+    --text: #f0ede6; --text2: #b0ada6; --text3: #707068;
+    --green: #1D9E75; --green-bg: #0d2a1c; --green-text: #4dc99a;
+    --red: #E24B4A; --red-bg: #2e1515; --red-text: #f07070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .wrap { width: 100%; max-width: 400px; animation: fadeUp 0.4s ease forwards; }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--green); }
+
+  .tagline {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text3);
+    margin-bottom: 40px;
+    line-height: 1.5;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .card-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; line-height: 1.6; }
+
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  input {
+    width: 100%; background: #1a1a1a; border: 1.5px solid var(--border2);
+    border-radius: 10px; padding: 13px 16px; font-size: 15px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--green); }
+  input::placeholder { color: var(--text3); }
+
+  .submit-btn {
+    width: 100%; background: var(--green); color: #fff; border: none;
+    border-radius: 12px; padding: 15px; font-size: 15px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 4px;
+  }
+  .submit-btn:hover { background: #18875f; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .spinner {
+    width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.8s linear infinite; display: none;
+  }
+
+  .error-msg {
+    display: none; background: var(--red-bg); border: 1px solid #4a2020;
+    border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--red-text); margin-top: 12px;
+  }
+
+  .not-found {
+    display: none; text-align: center; padding: 10px 0;
+  }
+  .nf-icon { font-size: 32px; margin-bottom: 12px; }
+  .nf-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); margin-bottom: 8px; }
+  .nf-sub { font-size: 13px; color: var(--text3); line-height: 1.6; margin-bottom: 20px; }
+  .try-again { background: none; border: 1px solid var(--border2); border-radius: 10px; padding: 10px 20px; font-size: 13px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .try-again:hover { color: var(--text2); border-color: var(--text3); }
+
+  .footer { text-align: center; margin-top: 24px; font-size: 12px; color: var(--text3); }
+  .footer a { color: var(--text3); text-decoration: underline; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">Layer<span>.</span></div>
+  <div class="tagline">The athlete-coach connection platform.</div>
+
+  <div class="card">
+    <div id="login-view">
+      <div class="card-title">Welcome back.</div>
+      <div class="card-sub">Enter your email to access your account.</div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="email-input" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+
+      <button class="submit-btn" id="submit-btn" onclick="login()">
+        <span id="btn-text">Continue →</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <div class="not-found" id="not-found">
+      <div class="nf-icon">✦</div>
+      <div class="nf-title">No account found.</div>
+      <div class="nf-sub">We couldn't find an account for that email. Ask your coach to send you an invite link, or sign up as a coach below.</div>
+      <button class="try-again" onclick="resetForm()">Try a different email</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    New coach? <a href="coach_signup.html">Create a coach account</a>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://eaqlyzvggjewavyxpbwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
+const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+
+document.getElementById('email-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+async function login() {
+  const email = document.getElementById('email-input').value.trim().toLowerCase();
+  if (!email || !email.includes('@')) { showError('Please enter a valid email address.'); return; }
+
+  setLoading(true);
+
+  try {
+    // Check coaches first
+    const coachRes = await fetch(`${SUPABASE_URL}/rest/v1/coaches?email=eq.${encodeURIComponent(email)}`, { headers });
+    const coaches = await coachRes.json();
+    if (coaches && coaches.length > 0) {
+      window.location.href = `dashboard.html?coach=${coaches[0].id}`;
+      return;
+    }
+
+    // Check athletes
+    const athleteRes = await fetch(`${SUPABASE_URL}/rest/v1/athletes?email=eq.${encodeURIComponent(email)}`, { headers });
+    const athletes = await athleteRes.json();
+    if (athletes && athletes.length > 0) {
+      window.location.href = `athlete_dashboard.html?athlete=${athletes[0].id}`;
+      return;
+    }
+
+    // Not found
+    setLoading(false);
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('not-found').style.display = 'block';
+
+  } catch(err) {
+    showError('Something went wrong. Please try again.');
+    setLoading(false);
+  }
+}
+
+function setLoading(on) {
+  document.getElementById('submit-btn').disabled = on;
+  document.getElementById('btn-text').textContent = on ? 'Looking you up…' : 'Continue →';
+  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+  setLoading(false);
+}
+
+function resetForm() {
+  document.getElementById('not-found').style.display = 'none';
+  document.getElementById('login-view').style.display = 'block';
+  document.getElementById('email-input').value = '';
+  setTimeout(() => document.getElementById('email-input').focus(), 100);
+}
+</script>
+</body>
+</html>

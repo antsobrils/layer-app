@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer — My Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f; --bg2: #141414; --bg3: #1e1e1e; --bg4: #262626;
+    --card: #181818; --border: #242424; --border2: #333;
+    --text: #f0ede6; --text2: #b0ada6; --text3: #707068;
+    --green: #1D9E75; --green-bg: #0d2a1c; --green-text: #4dc99a;
+    --red: #E24B4A; --red-bg: #2e1515; --red-text: #f07070;
+    --amber: #d4890a; --amber-bg: #2a1e08; --amber-text: #f0a830;
+    --c-sleep: #4dc99a; --c-motivation: #f0a830; --c-stress: #f07070; --c-readiness: #7B8FF0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; }
+
+  .page { max-width: 600px; margin: 0 auto; padding: 0 16px 48px; }
+
+  /* Header */
+  .header { padding: 48px 0 24px; }
+  .logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--green); margin-bottom: 24px; }
+  .greeting { font-size: 13px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+  .athlete-name { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--text); line-height: 1.1; margin-bottom: 4px; }
+  .coach-line { font-size: 13px; color: var(--text3); }
+  .coach-line span { color: var(--text2); }
+
+  /* Check-in status */
+  .checkin-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px;
+  }
+  .checkin-card.done { border-color: #1a3a28; background: var(--green-bg); }
+  .checkin-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .checkin-icon.done { background: rgba(29,158,117,0.2); }
+  .checkin-icon.pending { background: var(--bg3); }
+  .checkin-info { flex: 1; }
+  .checkin-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .checkin-sub { font-size: 12px; color: var(--text3); }
+  .checkin-card.done .checkin-title { color: var(--green-text); }
+  .checkin-btn {
+    background: var(--green); color: #fff; border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .checkin-btn:hover { background: #18875f; }
+
+  /* Section label */
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin: 20px 0 10px; }
+
+  /* Today's scores */
+  .scores-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; }
+  .scores-grid { display: flex; gap: 8px; }
+  .score-item { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
+  .score-item.alert { background: var(--red-bg); border-color: #3a2020; }
+  .score-item.good  { background: var(--green-bg); border-color: #1a3a28; }
+  .si-label { font-size: 10px; font-weight: 500; color: var(--text3); display: block; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+  .score-item.alert .si-label { color: #8a4040; }
+  .score-item.good  .si-label { color: #2a6a48; }
+  .si-val { font-size: 22px; font-weight: 700; color: var(--text); display: block; font-family: 'DM Serif Display', serif; line-height: 1; }
+  .score-item.alert .si-val { color: var(--red-text); }
+  .score-item.good  .si-val  { color: var(--green-text); }
+  .si-trend { font-size: 10px; display: block; margin-top: 3px; color: var(--text3); }
+  .si-trend.up   { color: var(--green-text); }
+  .si-trend.down { color: var(--red-text); }
+  .open-note { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: var(--text2); font-style: italic; line-height: 1.6; margin-top: 10px; }
+  .no-scores { font-size: 13px; color: var(--text3); font-style: italic; text-align: center; padding: 10px 0; }
+
+  /* 7-day trend chart */
+  .trend-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; }
+  .trend-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .trend-title { font-size: 14px; font-weight: 600; color: var(--text2); }
+  .stream-toggles { display: flex; gap: 6px; flex-wrap: wrap; }
+  .stream-tog { display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--border2); background: var(--bg3); font-size: 11px; color: var(--text2); cursor: pointer; transition: all 0.15s; user-select: none; }
+  .stream-tog.off { opacity: 0.35; }
+  .tog-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .chart-container { position: relative; width: 100%; height: 160px; }
+  canvas.trend-chart { width: 100% !important; height: 160px !important; }
+
+  /* Messages */
+  .messages-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 14px; overflow: hidden; }
+  .messages-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .messages-title { font-size: 14px; font-weight: 600; color: var(--text2); }
+  .unread-pill { background: var(--red-bg); color: var(--red-text); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid #4a2020; }
+  .thread { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; }
+  .msg { max-width: 80%; }
+  .msg.coach  { align-self: flex-start; }
+  .msg.athlete { align-self: flex-end; }
+  .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.6; }
+  .msg.coach  .msg-bubble { background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); border-bottom-left-radius: 4px; }
+  .msg.athlete .msg-bubble { background: var(--green-bg); color: var(--green-text); border: 1px solid #1a3a28; border-bottom-right-radius: 4px; }
+  .msg-time { font-size: 10px; color: var(--text3); margin-top: 4px; padding: 0 2px; }
+  .msg.athlete .msg-time { text-align: right; }
+  .msg-empty { text-align: center; padding: 20px; font-size: 13px; color: var(--text3); font-style: italic; }
+  .compose-row { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--border); }
+  .compose-input { flex: 1; background: var(--bg3); border: 1.5px solid var(--border2); border-radius: 10px; padding: 10px 13px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; resize: none; transition: border-color 0.2s; }
+  .compose-input:focus { border-color: var(--green); }
+  .compose-input::placeholder { color: var(--text3); }
+  .compose-send { background: var(--green); color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+  .compose-send:hover { background: #18875f; }
+
+  /* Coach summary */
+  .summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; }
+  .summary-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .summary-av { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--green), #0d6e50); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .summary-from { font-size: 13px; color: var(--text2); font-weight: 500; }
+  .summary-date { font-size: 11px; color: var(--text3); }
+  .summary-text { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
+  .summary-empty { font-size: 13px; color: var(--text3); font-style: italic; }
+  .summary-link { display: inline-flex; align-items: center; gap: 6px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 14px; font-size: 12px; color: var(--text2); text-decoration: none; transition: all 0.15s; }
+  .summary-link:hover { color: var(--text); border-color: var(--text3); }
+
+  /* Loading */
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loading-text { font-size: 13px; color: var(--text3); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .page { animation: fadeUp 0.4s ease forwards; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="logo">Layer.</div>
+    <div class="greeting" id="greeting">Good morning</div>
+    <div class="athlete-name" id="athlete-name">Loading…</div>
+    <div class="coach-line">Coach: <span id="coach-name">—</span></div>
+  </div>
+
+  <div id="main-content">
+    <div class="loading"><div class="spinner"></div><div class="loading-text">Loading your dashboard…</div></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://eaqlyzvggjewavyxpbwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
+const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+
+const params    = new URLSearchParams(window.location.search);
+const ATHLETE_ID = params.get('athlete');
+
+const STREAM_COLORS = {
+  sleep:      { line: '#4dc99a', fill: 'rgba(77,201,154,0.08)' },
+  motivation: { line: '#f0a830', fill: 'rgba(240,168,48,0.08)' },
+  stress:     { line: '#f07070', fill: 'rgba(240,112,112,0.08)' },
+  readiness:  { line: '#7B8FF0', fill: 'rgba(123,143,240,0.08)' },
+};
+
+let chartInstance = null;
+let currentCoachId = null;
+
+async function api(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers });
+  return res.json();
+}
+
+function getInitials(name) { return name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+function fullDate(d) { return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function metricClass(s) { return s<=2?'alert':s>=4?'good':''; }
+
+function calcTrend(hist, today) {
+  if (!hist||hist.length<3) return null;
+  const avg = hist.reduce((s,v)=>s+v,0)/hist.length;
+  const diff = today - avg;
+  const pct = Math.round(Math.abs(diff/avg)*100);
+  return { pct, direction: diff>0.2?'up':diff<-0.2?'down':'flat' };
+}
+
+function toggleStream(category) {
+  const btn = document.getElementById(`atog-${category}`);
+  btn.classList.toggle('off');
+  if (!chartInstance) return;
+  const ds = chartInstance.data.datasets.find(d=>d.label===category);
+  if (ds) { ds.hidden = btn.classList.contains('off'); chartInstance.update(); }
+}
+
+async function sendMsg() {
+  if (!currentCoachId) return;
+  const input = document.getElementById('athlete-compose');
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = '';
+
+  // Optimistic
+  const thread = document.getElementById('athlete-thread');
+  const empty = thread.querySelector('.msg-empty');
+  if (empty) empty.remove();
+  const el = document.createElement('div');
+  el.className = 'msg athlete';
+  el.innerHTML = `<div class="msg-bubble">${content}</div><div class="msg-time">Just now</div>`;
+  thread.appendChild(el);
+  thread.scrollTop = thread.scrollHeight;
+
+  await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ coach_id: currentCoachId, athlete_id: ATHLETE_ID, sender_role: 'athlete', content, read: false })
+  });
+}
+
+function handleKey(e) {
+  if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+async function init() {
+  if (!ATHLETE_ID) {
+    document.getElementById('main-content').innerHTML = `<div class="loading"><div class="loading-text">No athlete ID found. Please use your login link.</div></div>`;
+    return;
+  }
+
+  const hour = new Date().getHours();
+  document.getElementById('greeting').textContent = hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+
+  const athletes = await api(`athletes?id=eq.${ATHLETE_ID}`);
+  if (!athletes||athletes.length===0) {
+    document.getElementById('main-content').innerHTML = `<div class="loading"><div class="loading-text">Athlete not found.</div></div>`;
+    return;
+  }
+
+  const athlete = athletes[0];
+  currentCoachId = athlete.coach_id;
+  document.getElementById('athlete-name').textContent = athlete.name.split(' ')[0] + '.';
+
+  const coaches = await api(`coaches?id=eq.${athlete.coach_id}`);
+  if (coaches&&coaches[0]) document.getElementById('coach-name').textContent = coaches[0].name;
+
+  const today = new Date().toISOString().split('T')[0];
+  const questions = await api(`questions?is_core=eq.true&order=created_at.asc`);
+  const scaleQs = questions.filter(q=>q.type==='scale');
+  const openQ   = questions.find(q=>q.type==='text');
+
+  const todayRs = await api(`checkin_responses?date=eq.${today}&athlete_id=eq.${ATHLETE_ID}&order=created_at.asc`);
+  const checkinDone = todayRs && todayRs.length > 0;
+
+  // History for trends
+  const histStart = new Date(); histStart.setDate(histStart.getDate()-21);
+  const history = await api(`checkin_responses?date=gte.${histStart.toISOString().split('T')[0]}&athlete_id=eq.${ATHLETE_ID}&order=date.asc`);
+
+  // Messages
+  const msgs = await api(`messages?coach_id=eq.${athlete.coach_id}&athlete_id=eq.${ATHLETE_ID}&order=created_at.asc&limit=30`);
+  const unreadCount = msgs ? msgs.filter(m=>m.sender_role==='coach'&&!m.read).length : 0;
+
+  // Build chart data
+  const dateMap = {};
+  history.forEach(r => {
+    if (!dateMap[r.date]) dateMap[r.date] = {};
+    const q = scaleQs.find(q=>q.id===r.question_id);
+    if (q) dateMap[r.date][q.category] = r.score;
+  });
+  const sortedDates = Object.keys(dateMap).sort();
+  const chartLabels = sortedDates.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  const chartStreams = Object.fromEntries(scaleQs.map(q=>[q.category, sortedDates.map(d=>dateMap[d][q.category]??null)]));
+
+  // Today's scores
+  const scaleRs = todayRs ? todayRs.filter(r=>r.score!==null) : [];
+  const textR   = todayRs ? todayRs.find(r=>r.text_response&&r.text_response.trim()) : null;
+
+  const scoresHtml = scaleQs.map(q => {
+    const r = scaleRs.find(r=>r.question_id===q.id);
+    if (!r) return '';
+    const cls = metricClass(r.score);
+    const label = q.category.charAt(0).toUpperCase()+q.category.slice(1);
+    const hist = history.filter(h=>h.question_id===q.id&&h.date!==today).map(h=>h.score);
+    const trend = calcTrend(hist, r.score);
+    let trendHtml = '';
+    if (trend) {
+      const arrow = trend.direction==='up'?'▲':trend.direction==='down'?'▼':'—';
+      const cls2  = trend.direction==='up'?'up':trend.direction==='down'?'down':'';
+      trendHtml = `<span class="si-trend ${cls2}">${arrow} vs avg</span>`;
+    }
+    return `<div class="score-item ${cls}"><span class="si-label">${label}</span><span class="si-val">${r.score}</span>${trendHtml}</div>`;
+  }).join('');
+
+  const togglesHtml = scaleQs.map(q => {
+    const c = STREAM_COLORS[q.category]||{};
+    return `<button class="stream-tog" id="atog-${q.category}" onclick="toggleStream('${q.category}')"><div class="tog-dot" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</button>`;
+  }).join('');
+
+  const msgsHtml = msgs&&msgs.length>0
+    ? msgs.map(m=>`<div class="msg ${m.sender_role}"><div class="msg-bubble">${m.content}</div><div class="msg-time">${fullDate(m.created_at)}</div></div>`).join('')
+    : `<div class="msg-empty">No messages yet. Send your coach a message below.</div>`;
+
+  document.getElementById('main-content').innerHTML = `
+    <!-- Check-in status -->
+    <div class="checkin-card ${checkinDone?'done':''}">
+      <div class="checkin-icon ${checkinDone?'done':'pending'}">${checkinDone?'✓':'◎'}</div>
+      <div class="checkin-info">
+        <div class="checkin-title">${checkinDone?'Check-in complete':'Daily check-in'}</div>
+        <div class="checkin-sub">${checkinDone?'Submitted today — great work.':'Takes under 60 seconds.'}</div>
+      </div>
+      ${!checkinDone?`<a class="checkin-btn" href="checkin_form.html?athlete=${ATHLETE_ID}">Check in →</a>`:''}
+    </div>
+
+    <!-- Today's scores -->
+    ${checkinDone ? `
+    <div class="section-label">Today's scores</div>
+    <div class="scores-card">
+      ${scoresHtml.length>0?`<div class="scores-grid">${scoresHtml}</div>`:'<div class="no-scores">No scores yet today.</div>'}
+      ${textR?`<div class="open-note">"${textR.text_response}"</div>`:''}
+    </div>` : ''}
+
+    <!-- 7-day trend -->
+    <div class="section-label">Your trends · 21 days</div>
+    <div class="trend-card">
+      <div class="trend-header">
+        <span class="trend-title">All metrics</span>
+        <div class="stream-toggles">${togglesHtml}</div>
+      </div>
+      <div class="chart-container">
+        <canvas id="athlete-chart" class="trend-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="section-label">Messages with your coach ${unreadCount>0?`<span class="unread-pill">${unreadCount} new</span>`:''}</div>
+    <div class="messages-card">
+      <div class="thread" id="athlete-thread">${msgsHtml}</div>
+      <div class="compose-row">
+        <textarea class="compose-input" id="athlete-compose" placeholder="Message your coach… (Enter to send)" rows="1" onkeydown="handleKey(event)"></textarea>
+        <button class="compose-send" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+
+    <!-- Coach summary placeholder -->
+    <div class="section-label">From your coach</div>
+    <div class="summary-card">
+      <div class="summary-empty">Your coach hasn't posted a weekly summary yet. Check back soon.</div>
+    </div>
+  `;
+
+  // Scroll messages to bottom
+  const threadEl = document.getElementById('athlete-thread');
+  if (threadEl) threadEl.scrollTop = threadEl.scrollHeight;
+
+  // Render chart
+  const canvas = document.getElementById('athlete-chart');
+  if (canvas && sortedDates.length > 0) {
+    const datasets = Object.entries(chartStreams).map(([cat,scores]) => {
+      const c = STREAM_COLORS[cat]||{line:'#888',fill:'rgba(136,136,136,0.05)'};
+      return { label:cat, data:scores, borderColor:c.line, backgroundColor:c.fill, borderWidth:2, pointRadius:0, pointHoverRadius:4, pointHoverBackgroundColor:c.line, tension:0.4, fill:true };
+    });
+    chartInstance = new Chart(canvas, {
+      type:'line', data:{labels:chartLabels, datasets},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{display:false},
+          tooltip:{backgroundColor:'#1e1e1e',borderColor:'#333',borderWidth:1,titleColor:'#b0ada6',bodyColor:'#f0ede6',padding:10,
+            callbacks:{title:i=>i[0].label, label:i=>` ${i.dataset.label}: ${i.raw}/5`}}
+        },
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:7,maxRotation:0},border:{color:'#242424'}},
+          y:{min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}}
+        }
+      }
+    });
+  }
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
