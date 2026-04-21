@@ -394,6 +394,24 @@ async function init() {
       <div class="summary-empty">Your coach hasn't posted a weekly summary yet. Check back soon.</div>
     </div>
 
+    <!-- Macro trends -->
+    <div class="section-label">Your trends over time</div>
+    <div class="trend-card" style="margin-bottom:14px;">
+      <div class="trend-header">
+        <span class="trend-title">All metrics</span>
+        <div style="display:flex;gap:6px;">
+          <button class="stream-tog" id="awin-1m" onclick="setAthleteWindow('1m',this)" style="font-size:11px;padding:3px 10px;">1M</button>
+          <button class="stream-tog active" id="awin-3m" onclick="setAthleteWindow('3m',this)" style="font-size:11px;padding:3px 10px;">3M</button>
+          <button class="stream-tog" id="awin-6m" onclick="setAthleteWindow('6m',this)" style="font-size:11px;padding:3px 10px;">6M</button>
+          <button class="stream-tog" id="awin-12m" onclick="setAthleteWindow('12m',this)" style="font-size:11px;padding:3px 10px;">12M</button>
+        </div>
+      </div>
+      <div class="stream-toggles" id="macro-toggles" style="margin-bottom:12px;">${togglesHtml}</div>
+      <div style="position:relative;width:100%;height:200px;">
+        <canvas id="athlete-macro-chart" style="width:100%!important;height:200px!important;"></canvas>
+      </div>
+    </div>
+
     <!-- Profile -->
     <div class="section-label">Your profile</div>
     <div class="profile-card">
@@ -447,6 +465,70 @@ async function init() {
       }
     });
   }
+
+  // Render macro chart
+  setTimeout(() => renderMacroChart(ATHLETE_ID, questions), 100);
+}
+
+// ── Macro chart ──
+const MACRO_COLORS = {
+  sleep:      { line: '#4dc99a', fill: 'rgba(77,201,154,0.08)' },
+  motivation: { line: '#f0a830', fill: 'rgba(240,168,48,0.08)' },
+  stress:     { line: '#f07070', fill: 'rgba(240,112,112,0.08)' },
+  readiness:  { line: '#7B8FF0', fill: 'rgba(123,143,240,0.08)' },
+};
+let macroChart = null;
+let macroWindow = '3m';
+let macroStreams = new Set(['sleep','motivation','stress','readiness']);
+
+async function renderMacroChart(athleteId, questions) {
+  const days = {'1m':30,'3m':90,'6m':180,'12m':365}[macroWindow]||90;
+  const start = new Date(); start.setDate(start.getDate()-days);
+  const startStr = start.toISOString().split('T')[0];
+  const scaleQs = questions.filter(q=>q.type==='scale');
+  const history = await api(`checkin_responses?date=gte.${startStr}&athlete_id=eq.${athleteId}&order=date.asc`)||[];
+  const dateMap = {};
+  history.forEach(r=>{
+    if(!dateMap[r.date])dateMap[r.date]={};
+    const q=scaleQs.find(q=>q.id===r.question_id);
+    if(q)dateMap[r.date][q.category]=r.score;
+  });
+  const sortedDates = Object.keys(dateMap).sort();
+  const labels = sortedDates.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  const canvas = document.getElementById('athlete-macro-chart');
+  if(!canvas) return;
+  if(macroChart){macroChart.destroy();macroChart=null;}
+  const datasets = scaleQs.map(q=>{
+    const c=MACRO_COLORS[q.category]||{line:'#888',fill:'rgba(136,136,136,0.05)'};
+    return{label:q.category,data:sortedDates.map(d=>dateMap[d][q.category]??null),borderColor:c.line,backgroundColor:c.fill,borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:c.line,tension:0.4,fill:true,hidden:!macroStreams.has(q.category)};
+  });
+  macroChart = new Chart(canvas,{
+    type:'line',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',borderColor:'#333',borderWidth:1,titleColor:'#b0ada6',bodyColor:'#f0ede6',padding:10,callbacks:{title:i=>i[0].label,label:i=>` ${i.dataset.label}: ${i.raw!==null?i.raw+'/5':'no data'}`}}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:8,maxRotation:0},border:{color:'#242424'}},
+        y:{min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}}}}
+  });
+  // Wire up macro stream toggles
+  document.querySelectorAll('#macro-toggles .stream-tog[id^="atog-"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const cat = btn.id.replace('atog-','');
+      btn.classList.toggle('off');
+      if(macroStreams.has(cat))macroStreams.delete(cat);else macroStreams.add(cat);
+      if(!macroChart)return;
+      const ds=macroChart.data.datasets.find(d=>d.label===cat);
+      if(ds){ds.hidden=!macroStreams.has(cat);macroChart.update();}
+    };
+  });
+}
+
+function setAthleteWindow(w, btn) {
+  macroWindow = w;
+  document.querySelectorAll('[id^="awin-"]').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  // Re-render — need athleteId and questions from closure
+  const aid = new URLSearchParams(window.location.search).get('athlete');
+  api('questions?is_core=eq.true&order=created_at.asc').then(qs=>renderMacroChart(aid,qs));
 }
 
 async function editPhone(current) {

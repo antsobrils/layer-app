@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer — Macro Trends</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const h = new Date().getHours();
+  });
+</script>
+<style>
+  :root {
+    --bg:#0f0f0f;--bg2:#141414;--bg3:#1e1e1e;--bg4:#262626;
+    --card:#181818;--border:#242424;--border2:#333;
+    --text:#f0ede6;--text2:#b0ada6;--text3:#707068;
+    --green:#1D9E75;--green-bg:#0d2a1c;--green-text:#4dc99a;
+    --red:#E24B4A;--red-bg:#2e1515;--red-text:#f07070;
+    --amber:#d4890a;--amber-bg:#2a1e08;--amber-text:#f0a830;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);height:100vh;display:flex;overflow:hidden;}
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:28px 18px;display:flex;flex-direction:column;flex-shrink:0;}
+  .logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:36px;}
+  .logo span{color:var(--green);}
+  .nav-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-left:10px;}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--text3);margin-bottom:1px;cursor:pointer;text-decoration:none;transition:all .15s;}
+  .nav-item:hover{color:var(--text2);background:var(--bg3);}
+  .nav-item.active{background:var(--bg3);color:var(--text);}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);flex-shrink:0;}
+  .nav-item.active .nav-dot{background:var(--green);}
+  .nav-section{margin-bottom:24px;}
+  .sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:16px;}
+  .coach-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;}
+  .coach-av-wrap{position:relative;flex-shrink:0;}
+  .coach-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),#0d6e50);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+  .online-dot{position:absolute;bottom:1px;right:1px;width:8px;height:8px;background:var(--green);border-radius:50%;border:2px solid var(--bg2);}
+  .coach-name{font-size:13px;color:var(--text);font-weight:500;}
+  .coach-role{font-size:11px;color:var(--text3);}
+  .panels{flex:1;display:flex;overflow:hidden;}
+  .panel-athletes{width:280px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+  .panel-header{padding:24px 20px 16px;border-bottom:1px solid var(--border);}
+  .panel-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);}
+  .panel-sub{font-size:12px;color:var(--text3);margin-top:3px;}
+  .athlete-list{flex:1;overflow-y:auto;}
+  .athlete-row{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
+  .athlete-row:hover{background:var(--bg3);}
+  .athlete-row.active{background:var(--bg3);border-left:2px solid var(--green);}
+  .ar-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;background:linear-gradient(135deg,#262626,#1a1a1a);color:var(--text2);border:1px solid var(--border2);}
+  .ar-info{flex:1;min-width:0;}
+  .ar-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;}
+  .ar-sub{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ar-arrow{font-size:14px;color:var(--text3);}
+  .panel-chart{flex:1;display:flex;flex-direction:column;overflow:hidden;transform:translateX(20px);opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none;}
+  .panel-chart.visible{transform:translateX(0);opacity:1;pointer-events:all;}
+  .chart-header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .chart-header-left{display:flex;align-items:center;gap:14px;}
+  .back-btn{font-size:12px;color:var(--text3);cursor:pointer;padding:5px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;transition:all .15s;}
+  .back-btn:hover{color:var(--text2);}
+  .athlete-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);}
+  .athlete-subtitle{font-size:12px;color:var(--text3);margin-top:2px;}
+  .window-btns{display:flex;gap:6px;}
+  .win-btn{font-size:12px;padding:5px 14px;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .win-btn.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+  .chart-body{flex:1;overflow-y:auto;padding:20px 28px 28px;}
+  .stream-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+  .stream-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-right:4px;}
+  .stog{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:99px;border:1px solid var(--border2);background:var(--bg3);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;user-select:none;}
+  .stog.off{opacity:.35;}
+  .sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+  .cc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .cc-title{font-size:13px;font-weight:600;color:var(--text2);}
+  .cc-sub{font-size:11px;color:var(--text3);}
+  .chart-wrap{display:flex;}
+  .y-axis{width:28px;display:flex;flex-direction:column;justify-content:space-between;padding-bottom:22px;flex-shrink:0;}
+  .y-lbl{font-size:10px;color:var(--text3);text-align:right;}
+  .chart-svg-wrap{flex:1;}
+  canvas.macro-chart{width:100%!important;}
+  .legend-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+  .ll{width:18px;height:2px;border-radius:1px;}
+  .le{width:10px;height:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;flex-shrink:0;}
+  .events-section{margin-top:8px;}
+  .events-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .events-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
+  .add-event-btn{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .add-event-btn:hover{color:var(--text2);}
+  .events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+  .event-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;}
+  .event-card.race{border-left:3px solid #7B74E0;}
+  .event-card.illness{border-left:3px solid var(--red);}
+  .event-card.personal{border-left:3px solid var(--amber);}
+  .event-card.training_camp{border-left:3px solid var(--green);}
+  .ec-type{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px;}
+  .ec-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+  .ec-date{font-size:11px;color:var(--text3);}
+  .ec-tag{display:inline-block;margin-top:5px;font-size:10px;padding:1px 7px;border-radius:99px;font-weight:600;background:#1e1830;color:#7B74E0;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:400px;padding:24px;animation:fadeUp .2s ease forwards;}
+  .modal-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--text);margin-bottom:20px;}
+  .modal-field{margin-bottom:14px;}
+  .modal-label{display:block;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+  .modal-input,.modal-select{width:100%;background:var(--bg2);border:1.5px solid var(--border2);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+  .modal-input:focus,.modal-select:focus{border-color:var(--green);}
+  .modal-select option{background:var(--bg2);}
+  .modal-row{display:flex;gap:10px;}
+  .modal-btns{display:flex;gap:8px;margin-top:6px;}
+  .modal-save{flex:1;background:var(--green);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;}
+  .modal-cancel{background:var(--bg3);color:var(--text3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+  .empty-panel{flex:1;display:flex;align-items:center;justify-content:center;}
+  .empty-inner{text-align:center;padding:40px;}
+  .empty-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text2);margin-bottom:8px;}
+  .empty-sub{font-size:14px;color:var(--text3);line-height:1.6;}
+  .loading-inline{padding:40px;text-align:center;font-size:13px;color:var(--text3);}
+  .spinner{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="logo">Layer<span>.</span></div>
+  <div class="nav-section">
+    <div class="nav-label">Coach</div>
+    <a class="nav-item" id="nav-roster" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
+    <a class="nav-item" id="nav-messages" href="messages.html"><div class="nav-dot"></div>Messages</a>
+    <a class="nav-item active" id="nav-macro" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Athlete profiles</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Race calendar</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Settings</div>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Question builder</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Integrations</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="coach-chip">
+      <div class="coach-av-wrap">
+        <div class="coach-av" id="coach-av">?</div>
+        <div class="online-dot"></div>
+      </div>
+      <div>
+        <div class="coach-name" id="coach-name">Loading...</div>
+        <div class="coach-role">Layer - Coach</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panels">
+  <div class="panel-athletes">
+    <div class="panel-header">
+      <div class="panel-title">Macro trends</div>
+      <div class="panel-sub" id="roster-sub">Select an athlete to view their trends</div>
+    </div>
+    <div class="athlete-list" id="athlete-list">
+      <div class="loading-inline"><div class="spinner"></div>Loading roster...</div>
+    </div>
+  </div>
+  <div class="panel-chart" id="panel-chart">
+    <div class="empty-panel">
+      <div class="empty-inner">
+        <div class="empty-title">Select an athlete</div>
+        <div class="empty-sub">Choose an athlete from the list to view their macro trends and event annotations.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add timeline event</div>
+    <div class="modal-field">
+      <label class="modal-label">Event type</label>
+      <select class="modal-select" id="event-type">
+        <option value="race">Race</option>
+        <option value="illness">Illness / injury</option>
+        <option value="personal">Personal event</option>
+        <option value="training_camp">Training camp</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Title</label>
+      <input class="modal-input" type="text" id="event-title" placeholder="e.g. Regional Champs 70.3"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field" style="flex:1">
+        <label class="modal-label">Date</label>
+        <input class="modal-input" type="date" id="event-date"/>
+      </div>
+      <div class="modal-field" style="flex:1">
+        <label class="modal-label">Priority (races)</label>
+        <select class="modal-select" id="event-priority">
+          <option value="">None</option>
+          <option value="A">A race</option>
+          <option value="B">B race</option>
+          <option value="C">C race</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Notes (optional)</label>
+      <input class="modal-input" type="text" id="event-notes" placeholder="Any additional context"/>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-save" onclick="saveEvent()">Add to timeline</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const SUPABASE_URL='https://eaqlyzvggjewavyxpbwk.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
+const _p=new URLSearchParams(window.location.search);
+const COACH_ID=_p.get('coach')||'051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
+if(_p.get('coach')){document.getElementById('nav-roster').href=`dashboard.html?coach=${COACH_ID}`;document.getElementById('nav-messages').href=`messages.html?coach=${COACH_ID}`;document.getElementById('nav-macro').href=`macro.html?coach=${COACH_ID}`;}
+const headers={'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`};
+const STREAM_COLORS={sleep:{line:'#4dc99a',fill:'rgba(77,201,154,0.08)'},motivation:{line:'#f0a830',fill:'rgba(240,168,48,0.08)'},stress:{line:'#f07070',fill:'rgba(240,112,112,0.08)'},readiness:{line:'#7B8FF0',fill:'rgba(123,143,240,0.08)'}};
+let chartInstance=null,currentAthlete=null,currentWindow='3m',allQuestions=[],activeStreams=new Set(['sleep','motivation','stress','readiness']);
+async function api(path){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers});return res.json();}
+function getInitials(n){return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);}
+function windowDays(w){return{'1m':30,'3m':90,'6m':180,'12m':365}[w]||90;}
+
+async function init(){
+  const coaches=await api(`coaches?id=eq.${COACH_ID}`);
+  if(coaches&&coaches[0]){document.getElementById('coach-name').textContent=coaches[0].name;document.getElementById('coach-av').textContent=getInitials(coaches[0].name);}
+  allQuestions=await api('questions?is_core=eq.true&order=created_at.asc')||[];
+  const athletes=await api(`athletes?coach_id=eq.${COACH_ID}&order=name.asc`);
+  if(!athletes||!athletes.length){document.getElementById('athlete-list').innerHTML='<div class="loading-inline">No athletes yet.</div>';return;}
+  document.getElementById('roster-sub').textContent=`${athletes.length} athlete${athletes.length!==1?'s':''}`;
+  document.getElementById('athlete-list').innerHTML=athletes.map(a=>`
+    <div class="athlete-row" id="ar-${a.id}" onclick="selectAthlete('${a.id}','${a.name.replace(/'/g,"\'")}','${a.email}')">
+      <div class="ar-av">${getInitials(a.name)}</div>
+      <div class="ar-info"><div class="ar-name">${a.name}</div><div class="ar-sub">${a.email}</div></div>
+      <div class="ar-arrow">&#x203A;</div>
+    </div>`).join('');
+}
+
+async function selectAthlete(id,name,email){
+  currentAthlete={id,name,email};
+  document.querySelectorAll('.athlete-row').forEach(r=>r.classList.remove('active'));
+  const row=document.getElementById(`ar-${id}`);
+  if(row)row.classList.add('active');
+  document.getElementById('panel-chart').classList.add('visible');
+  await loadChart();
+}
+
+async function loadChart(){
+  if(!currentAthlete)return;
+  const panel=document.getElementById('panel-chart');
+  panel.innerHTML='<div class="loading-inline"><div class="spinner"></div>Loading trends...</div>';
+  panel.classList.add('visible');
+  const days=windowDays(currentWindow);
+  const start=new Date();start.setDate(start.getDate()-days);
+  const startStr=start.toISOString().split('T')[0];
+  const scaleQs=allQuestions.filter(q=>q.type==='scale');
+  const history=await api(`checkin_responses?date=gte.${startStr}&athlete_id=eq.${currentAthlete.id}&order=date.asc`)||[];
+  const events=await api(`calendar_events?athlete_id=eq.${currentAthlete.id}&order=date.asc`)||[];
+  const dateMap={};
+  history.forEach(r=>{
+    if(!dateMap[r.date])dateMap[r.date]={};
+    const q=scaleQs.find(q=>q.id===r.question_id);
+    if(q)dateMap[r.date][q.category]=r.score;
+  });
+  const sortedDates=Object.keys(dateMap).sort();
+  const labels=sortedDates.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  const streams=Object.fromEntries(scaleQs.map(q=>[q.category,sortedDates.map(d=>dateMap[d][q.category]??null)]));
+  const togglesHtml=scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};const off=!activeStreams.has(q.category)?'off':'';return `<button class="stog ${off}" id="stog-${q.category}" onclick="toggleStream('${q.category}')"><div class="sdot" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</button>`;}).join('');
+  const winLabel={'1m':'1 month','3m':'3 months','6m':'6 months','12m':'12 months'}[currentWindow];
+  const eventCards=events.length>0?events.map(e=>`<div class="event-card ${e.type}"><div class="ec-type">${e.type.replace('_',' ')}</div><div class="ec-title">${e.title}</div><div class="ec-date">${new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>${e.priority?`<span class="ec-tag">${e.priority}-race</span>`:''}</div>`).join(''):'<div style="font-size:13px;color:var(--text3);font-style:italic;">No events yet. Add a race or event to annotate the timeline.</div>';
+  panel.innerHTML=`
+    <div class="chart-header">
+      <div class="chart-header-left">
+        <button class="back-btn" onclick="hideChart()">&#8592; Athletes</button>
+        <div><div class="athlete-title">${currentAthlete.name}</div><div class="athlete-subtitle">Macro trends - ${winLabel}</div></div>
+      </div>
+      <div class="window-btns">
+        <button class="win-btn ${currentWindow==='1m'?'active':''}" onclick="setWindow('1m')">1M</button>
+        <button class="win-btn ${currentWindow==='3m'?'active':''}" onclick="setWindow('3m')">3M</button>
+        <button class="win-btn ${currentWindow==='6m'?'active':''}" onclick="setWindow('6m')">6M</button>
+        <button class="win-btn ${currentWindow==='12m'?'active':''}" onclick="setWindow('12m')">12M</button>
+      </div>
+    </div>
+    <div class="chart-body">
+      <div class="stream-row"><span class="stream-lbl">Streams</span>${togglesHtml}</div>
+      <div class="chart-card">
+        <div class="cc-header"><span class="cc-title">Wellness metrics - ${sortedDates.length} days of data</span><span class="cc-sub">Daily scores 1-5</span></div>
+        <div class="chart-wrap">
+          <div class="y-axis"><div class="y-lbl">5</div><div class="y-lbl">4</div><div class="y-lbl">3</div><div class="y-lbl">2</div><div class="y-lbl">1</div></div>
+          <div class="chart-svg-wrap"><canvas id="macro-canvas" class="macro-chart" style="height:240px"></canvas></div>
+        </div>
+        <div class="legend-row">
+          ${scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};return `<div class="legend-item"><div class="ll" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</div>`;}).join('')}
+          <div class="legend-item"><div class="le" style="background:#7B74E0;">R</div>Race</div>
+          <div class="legend-item"><div class="le" style="background:var(--red);">!</div>Illness</div>
+          <div class="legend-item"><div class="le" style="background:var(--amber);">P</div>Personal</div>
+        </div>
+      </div>
+      <div class="events-section">
+        <div class="events-header"><span class="events-title">Timeline events</span><button class="add-event-btn" onclick="openModal()">+ Add event</button></div>
+        <div class="events-grid" id="events-grid">${eventCards}</div>
+      </div>
+    </div>`;
+  setTimeout(()=>{
+    const canvas=document.getElementById('macro-canvas');
+    if(!canvas)return;
+    if(chartInstance){chartInstance.destroy();chartInstance=null;}
+    const datasets=scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{line:'#888',fill:'rgba(136,136,136,0.05)'};return{label:q.category,data:streams[q.category],borderColor:c.line,backgroundColor:c.fill,borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:c.line,tension:0.4,fill:true,hidden:!activeStreams.has(q.category)};});
+    chartInstance=new Chart(canvas,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',borderColor:'#333',borderWidth:1,titleColor:'#b0ada6',bodyColor:'#f0ede6',padding:10,callbacks:{title:i=>i[0].label,label:i=>` ${i.dataset.label}: ${i.raw!==null?i.raw+'/5':'no data'}`}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:10,maxRotation:0},border:{color:'#242424'}},y:{min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}}}}});
+  },50);
+}
+
+function toggleStream(cat){
+  const btn=document.getElementById(`stog-${cat}`);
+  if(!btn)return;
+  btn.classList.toggle('off');
+  if(activeStreams.has(cat))activeStreams.delete(cat);else activeStreams.add(cat);
+  if(!chartInstance)return;
+  const ds=chartInstance.data.datasets.find(d=>d.label===cat);
+  if(ds){ds.hidden=!activeStreams.has(cat);chartInstance.update();}
+}
+
+function setWindow(w){currentWindow=w;loadChart();}
+
+function hideChart(){
+  document.getElementById('panel-chart').classList.remove('visible');
+  document.querySelectorAll('.athlete-row').forEach(r=>r.classList.remove('active'));
+  currentAthlete=null;
+}
+
+function openModal(){
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('event-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('event-title').value='';
+  document.getElementById('event-notes').value='';
+}
+
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+
+async function saveEvent(){
+  if(!currentAthlete)return;
+  const type=document.getElementById('event-type').value;
+  const title=document.getElementById('event-title').value.trim();
+  const date=document.getElementById('event-date').value;
+  const priority=document.getElementById('event-priority').value||null;
+  const notes=document.getElementById('event-notes').value.trim()||null;
+  if(!title||!date)return;
+  await fetch(`${SUPABASE_URL}/rest/v1/calendar_events`,{method:'POST',headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({athlete_id:currentAthlete.id,type,title,date,priority,notes})});
+  closeModal();
+  loadChart();
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
