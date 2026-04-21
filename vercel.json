@@ -1,7 +1,6 @@
 {
   "name": "layer-app",
   "version": "1.0.0",
-  "description": "Layer — athlete coaching platform",
   "engines": {
     "node": "24.x"
   }
