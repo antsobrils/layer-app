@@ -316,17 +316,27 @@ function renderPage() {
     { key:'vo2max',       label:'VO2Max',           value: d.vo2max||'',       unit:'ml/kg/min' },
     { key:'peak_power',   label:'Peak Power',      value: d.peak_power||'',   unit:'w' },
     { key:'threshold_hr', label:'Threshold HR',    value: d.threshold_hr||'', unit:'bpm' },
+    { key:'weight',       label:'Weight',          value: d.weight||'',       unit: d.weight_unit||'kg' },
   ];
 
-  const metricsHtml = metrics.map(m => `
+  const metricsHtml = metrics.map(m => {
+    const isWeight = m.key === 'weight';
+    const unitToggle = isWeight ? `
+      <div style="display:flex;gap:4px;margin-top:6px;">
+        <button onclick="setWeightUnit('kg')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);background:${(d.weight_unit||'kg')==='kg'?'var(--green)':'var(--bg3)'};color:${(d.weight_unit||'kg')==='kg'?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif;">kg</button>
+        <button onclick="setWeightUnit('lbs')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);background:${(d.weight_unit||'kg')==='lbs'?'var(--green)':'var(--bg3)'};color:${(d.weight_unit||'kg')==='lbs'?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif;">lbs</button>
+      </div>` : '';
+    return `
     <div class="metric-card" id="mc-${m.key}">
       <div class="mc-label">${m.label}</div>
       <div class="mc-value" id="mc-val-${m.key}">
         <span id="mc-display-${m.key}">${m.value||'—'}</span>
         <span class="mc-unit">${m.value?m.unit:''}</span>
       </div>
+      ${unitToggle}
       <button class="mc-edit-btn" onclick="editMetric('${m.key}','${m.unit}')">Edit</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   // Power zones
   const powerZonesHtml = POWER_ZONES.map(z => {
@@ -390,7 +400,9 @@ function renderPage() {
   // Power profile table
   const profileRowsHtml = INTERVALS.map(iv => {
     const val = (d.power_profile||{})[iv.key];
-    const wkg = val && d.weight ? (val/d.weight).toFixed(1) : null;
+    const rawWeight = d.weight || 0;
+    const weightKg = rawWeight ? (d.weight_unit === 'lbs' ? rawWeight / 2.205 : rawWeight) : 0;
+    const wkg = val && weightKg ? (val/weightKg).toFixed(1) : null;
     return `<tr>
       <td class="interval-label">${iv.label}</td>
       <td><span class="power-val ${val?'':'empty'}" id="pp-display-${iv.key}">${val ? val+'w' : '—'}</span></td>
@@ -463,6 +475,12 @@ function renderPage() {
       </div>
 
     </div>`;
+}
+
+function setWeightUnit(unit) {
+  athleteData.weight_unit = unit;
+  saveToStorage();
+  renderPage();
 }
 
 function editMetric(key, unit) {
