@@ -231,6 +231,35 @@ const COLORS = {
   readiness:  { line: '#7B8FF0', fill: 'rgba(123,143,240,0.08)' },
 };
 
+// Question ID map
+const Q = {
+  sleep:      '3f7f8eb1-62ae-4c26-91c1-5d45f55d6eb5',
+  readiness:  '4462c210-4593-427c-83ce-c9ed8b8bdbe3',
+  motivation: '583f8fb5-3713-4f56-be71-91517c7e2f57',
+  stress:     '5eba99d5-5f60-4349-97c1-8f0673be4896',
+  open:       '181d0da7-0a87-48de-8bdc-543a936f4d05',
+};
+
+async function fetchResponses(athleteId, since) {
+  const qIds = Object.values(Q).join(',');
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/checkin_responses?athlete_id=eq.${athleteId}&question_id=in.(${qIds})&date=gte.${since}&select=date,question_id,score,text_response&order=date.asc`,
+    { headers }
+  );
+  const rows = await res.json();
+  if (!Array.isArray(rows)) return {};
+  const byDate = {};
+  rows.forEach(r => {
+    if (!byDate[r.date]) byDate[r.date] = {};
+    if (r.question_id === Q.sleep)      byDate[r.date].sleep      = r.score;
+    if (r.question_id === Q.motivation) byDate[r.date].motivation = r.score;
+    if (r.question_id === Q.stress)     byDate[r.date].stress     = r.score;
+    if (r.question_id === Q.readiness)  byDate[r.date].readiness  = r.score;
+    if (r.question_id === Q.open && r.text_response) byDate[r.date].text = r.text_response;
+  });
+  return byDate;
+}
+
 // Update nav links with coach param
 if (p.get('coach')) {
   document.getElementById('nav-roster').href   = `dashboard.html?coach=${COACH_ID}`;
@@ -295,10 +324,10 @@ async function loadRoster() {
   const athleteIds = athletes.map(a => a.id).join(',');
   let subMap = {};
   try {
-    const subRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=in.(${athleteIds})&submitted_at=gte.${todayStr}T00:00:00&select=athlete_id`, { headers });
+    const subRes = await fetch(`${SUPABASE_URL}/rest/v1/checkin_responses?athlete_id=in.(${athleteIds})&date=eq.${todayStr}&select=athlete_id`, { headers });
     const subs = await subRes.json();
     if (Array.isArray(subs)) subs.forEach(s => subMap[s.athlete_id] = true);
-  } catch(e) { /* silent fail - submission status optional */ }
+  } catch(e) { /* silent fail */ }
 
   list.innerHTML = athletes.map(a => {
     const submitted = !!subMap[a.id];
@@ -331,26 +360,26 @@ async function selectAthlete(athleteId) {
   const athlete = athletes.find(a => a.id === athleteId);
   if (!athlete) return;
 
-  // Fetch today's check-in
+  // Fetch today + 7-day history using checkin_responses
   const todayStr = today();
-  const ciRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=eq.${athleteId}&submitted_at=gte.${todayStr}T00:00:00&select=submitted_at,sleep_score,motivation_score,stress_score,readiness_score,text_response&order=submitted_at.desc&limit=1`, { headers });
-  const cis = await ciRes.json();
-  const ci = cis[0] || null;
-
-  // Fetch 7-day avg
   const weekAgoStr = daysAgo(7);
-  const avgRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=eq.${athleteId}&submitted_at=gte.${weekAgoStr}&select=sleep_score,motivation_score,stress_score,readiness_score`, { headers });
-  const weekData = await avgRes.json();
+  const byDate = await fetchResponses(athleteId, weekAgoStr);
 
-  function avg(field) {
-    const vals = weekData.map(r=>r[field]).filter(v=>v!=null);
+  const ci = byDate[todayStr] || null;  // today's pivoted row or null
+
+  // 7-day averages (excluding today)
+  function calcAvg(key) {
+    const vals = Object.entries(byDate)
+      .filter(([d]) => d !== todayStr)
+      .map(([,v]) => v[key])
+      .filter(v => v != null);
     return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : null;
   }
   const avgs = {
-    sleep:      avg('sleep_score'),
-    motivation: avg('motivation_score'),
-    stress:     avg('stress_score'),
-    readiness:  avg('readiness_score'),
+    sleep:      calcAvg('sleep'),
+    motivation: calcAvg('motivation'),
+    stress:     calcAvg('stress'),
+    readiness:  calcAvg('readiness'),
   };
 
   function trendArrow(val, avg) {
@@ -362,8 +391,8 @@ async function selectAthlete(athleteId) {
   }
 
   const todayFmt = fmtDate(todayStr);
-  const submittedTime = ci?.submitted_at ? new Date(ci.submitted_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : null;
-  const flagged = ci && (ci.sleep_score===1 || ci.motivation_score===1 || ci.stress_score===1 || ci.readiness_score===1);
+  const submittedTime = null; // date-only table, no timestamp
+  const flagged = ci && (ci.sleep===1 || ci.motivation===1 || ci.stress===1 || ci.readiness===1);
 
   profile.innerHTML = `
     <div class="fade-up">
@@ -395,29 +424,29 @@ async function selectAthlete(athleteId) {
           </div>
 
           ${ci ? `
-            ${ci.text_response
-              ? `<div class="note-bubble">"${ci.text_response}"</div>`
+            ${ci.text
+              ? `<div class="note-bubble">"${ci.text}"</div>`
               : `<div class="note-empty">No note left today</div>`}
             <div class="metrics-grid">
               <div class="metric-box">
                 <div class="metric-label">Sleep</div>
-                <div class="metric-val ${scoreColor(ci.sleep_score)}">${ci.sleep_score??'—'}</div>
-                <div class="metric-trend">${trendArrow(ci.sleep_score, avgs.sleep)}</div>
+                <div class="metric-val ${scoreColor(ci.sleep)}">${ci.sleep??'—'}</div>
+                <div class="metric-trend">${trendArrow(ci.sleep, avgs.sleep)}</div>
               </div>
               <div class="metric-box">
                 <div class="metric-label">Motivation</div>
-                <div class="metric-val ${scoreColor(ci.motivation_score)}">${ci.motivation_score??'—'}</div>
-                <div class="metric-trend">${trendArrow(ci.motivation_score, avgs.motivation)}</div>
+                <div class="metric-val ${scoreColor(ci.motivation)}">${ci.motivation??'—'}</div>
+                <div class="metric-trend">${trendArrow(ci.motivation, avgs.motivation)}</div>
               </div>
               <div class="metric-box">
                 <div class="metric-label">Stress</div>
-                <div class="metric-val ${scoreColor(ci.stress_score)}">${ci.stress_score??'—'}</div>
-                <div class="metric-trend">${trendArrow(ci.stress_score, avgs.stress)}</div>
+                <div class="metric-val ${scoreColor(ci.stress)}">${ci.stress??'—'}</div>
+                <div class="metric-trend">${trendArrow(ci.stress, avgs.stress)}</div>
               </div>
               <div class="metric-box">
                 <div class="metric-label">Readiness</div>
-                <div class="metric-val ${scoreColor(ci.readiness_score)}">${ci.readiness_score??'—'}</div>
-                <div class="metric-trend">${trendArrow(ci.readiness_score, avgs.readiness)}</div>
+                <div class="metric-val ${scoreColor(ci.readiness)}">${ci.readiness??'—'}</div>
+                <div class="metric-trend">${trendArrow(ci.readiness, avgs.readiness)}</div>
               </div>
             </div>
             <div class="tss-row">
@@ -472,30 +501,30 @@ async function loadChart(athleteId) {
   const days = activeWindow === '1M' ? 30 : activeWindow === '3M' ? 90 : activeWindow === '6M' ? 180 : 365;
   const since = daysAgo(days);
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=eq.${athleteId}&submitted_at=gte.${since}&select=submitted_at,sleep_score,motivation_score,stress_score,readiness_score&order=submitted_at.asc`, { headers });
-  const rows = await res.json();
+  const byDate = await fetchResponses(athleteId, since);
+  const entries = Object.entries(byDate).sort(([a],[b]) => a.localeCompare(b));
 
   const canvas = document.getElementById('macro-chart');
   if (!canvas) return;
 
-  if (!rows.length) {
+  if (!entries.length) {
     canvas.parentElement.innerHTML = '<div class="no-data">No data for this period.</div>';
     return;
   }
 
-  const labels = rows.map(r => {
-    const d = new Date(r.submitted_at);
-    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const labels = entries.map(([d]) => {
+    const dt = new Date(d+'T00:00:00');
+    return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
   });
 
-  function makeDataset(field, label, key) {
+  function makeDataset(key, label) {
     return {
       label,
-      data: rows.map(r => r[field]),
+      data: entries.map(([,v]) => v[key] ?? null),
       borderColor: COLORS[key].line,
       backgroundColor: COLORS[key].fill,
       borderWidth: 2,
-      pointRadius: rows.length > 60 ? 0 : 3,
+      pointRadius: entries.length > 60 ? 0 : 3,
       pointHoverRadius: 5,
       tension: 0.4,
       fill: true,
@@ -509,10 +538,10 @@ async function loadChart(athleteId) {
     data: {
       labels,
       datasets: [
-        makeDataset('sleep_score',      'Sleep',      'sleep'),
-        makeDataset('motivation_score', 'Motivation', 'motivation'),
-        makeDataset('stress_score',     'Stress',     'stress'),
-        makeDataset('readiness_score',  'Readiness',  'readiness'),
+        makeDataset('sleep',      'Sleep'),
+        makeDataset('motivation', 'Motivation'),
+        makeDataset('stress',     'Stress'),
+        makeDataset('readiness',  'Readiness'),
       ]
     },
     options: {
