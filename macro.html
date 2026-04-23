@@ -221,7 +221,7 @@ if(_p.get('coach')){
 const headers={'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`};
 const STREAM_COLORS={sleep:{line:'#4dc99a',fill:'rgba(77,201,154,0.08)'},motivation:{line:'#f0a830',fill:'rgba(240,168,48,0.08)'},stress:{line:'#f07070',fill:'rgba(240,112,112,0.08)'},readiness:{line:'#7B8FF0',fill:'rgba(123,143,240,0.08)'}};
 const EVENT_COLORS={race:'#7B74E0',illness:'#E24B4A',personal:'#d4890a',training_camp:'#1D9E75'};
-let chartInstance=null,currentAthlete=null,currentWindow='3m',allQuestions=[],activeStreams=new Set(['sleep','motivation','stress','readiness']);
+let chartInstance=null,currentAthlete=null,currentWindow='3m',allQuestions=[],activeStreams=new Set(['sleep','motivation','stress','readiness','ftp','cp','wprime']);
 
 async function api(path){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers});return res.json();}
 function getInitials(n){return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);}
@@ -271,7 +271,36 @@ async function loadChart(){
   const sortedDates=Object.keys(dateMap).sort();
   const labels=sortedDates.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
   const streams=Object.fromEntries(scaleQs.map(q=>[q.category,sortedDates.map(d=>dateMap[d][q.category]??null)]));
+
+  // Fetch FTP/CP/W' history from Supabase
+  const metricsHistory=await api(`athlete_metrics_history?athlete_id=eq.${currentAthlete.id}&date=gte.${startStr}&order=date.asc`)||[];
+  const metricMap={ftp:{},cp:{},wprime:{}};
+  metricsHistory.forEach(r=>{if(metricMap[r.metric])metricMap[r.metric][r.date]=r.value;});
+
+  // Forward-fill metrics so they show as continuous lines
+  function forwardFill(metricObj, dates) {
+    let last=null;
+    return dates.map(d=>{if(metricObj[d]!=null)last=metricObj[d];return last;});
+  }
+  const ftpLine   = forwardFill(metricMap.ftp,    sortedDates);
+  const cpLine    = forwardFill(metricMap.cp,     sortedDates);
+  const wprimeLine= forwardFill(metricMap.wprime,  sortedDates);
+  const tssLine   = sortedDates.map(()=>null); // placeholder until TP connected
+
+  const METRIC_COLORS={
+    ftp:   {line:'#f0ede6', fill:'rgba(240,237,230,0.0)'},
+    cp:    {line:'#60a0ff', fill:'rgba(96,160,255,0.0)'},
+    wprime:{line:'#c060ff', fill:'rgba(192,96,255,0.0)'},
+    tss:   {line:'#f0a830', fill:'rgba(240,168,48,0.0)'},
+  };
+
   const togglesHtml=scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};const off=!activeStreams.has(q.category)?'off':'';return `<button class="stog ${off}" id="stog-${q.category}" onclick="toggleStream('${q.category}')"><div class="sdot" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</button>`;}).join('');
+  const metricTogglesHtml=`
+    <button class="stog ${activeStreams.has('ftp')?'':'off'}" id="stog-ftp" onclick="toggleStream('ftp')"><div class="sdot" style="background:${METRIC_COLORS.ftp.line}"></div>FTP</button>
+    <button class="stog ${activeStreams.has('cp')?'':'off'}" id="stog-cp" onclick="toggleStream('cp')"><div class="sdot" style="background:${METRIC_COLORS.cp.line}"></div>CP</button>
+    <button class="stog ${activeStreams.has('wprime')?'':'off'}" id="stog-wprime" onclick="toggleStream('wprime')"><div class="sdot" style="background:${METRIC_COLORS.wprime.line}"></div>W'</button>
+    <button class="stog off" id="stog-tss" onclick="alert('TSS requires Training Peaks integration — coming soon.')"><div class="sdot" style="background:${METRIC_COLORS.tss.line}"></div>TSS</button>`;
+
   const winLabel={'1m':'1 month','3m':'3 months','6m':'6 months','12m':'12 months'}[currentWindow];
   const eventCards=events.length>0?events.map(e=>`
     <div class="event-card ${e.type}" style="cursor:pointer;" onclick="editEvent('${e.id}','${e.type}','${e.title.replace(/'/g,"\\'")}','${e.date}','${e.priority||''}','${(e.notes||'').replace(/'/g,"\\'")}')">
@@ -295,12 +324,25 @@ async function loadChart(){
       </div>
     </div>
     <div class="chart-body">
-      <div class="stream-row"><span class="stream-lbl">Streams</span>${togglesHtml}</div>
+      <div class="stream-row">
+        <span class="stream-lbl">Wellness</span>${togglesHtml}
+        <span class="stream-lbl" style="margin-left:8px;">Training</span>${metricTogglesHtml}
+      </div>
       <div class="chart-card">
-        <div class="cc-header"><span class="cc-title">Wellness metrics - ${sortedDates.length} days of data</span><span class="cc-sub">Daily scores 1-5</span></div>
+        <div class="cc-header">
+          <span class="cc-title">Wellness metrics - ${sortedDates.length} days of data</span>
+          <span class="cc-sub">
+            <span style="color:#b0ada6;">Scores 1–5 (L)</span>
+            &nbsp;·&nbsp;
+            <span style="color:#707068;">Watts / kJ (R)</span>
+          </span>
+        </div>
         <div style="position:relative;height:240px;"><canvas id="macro-canvas"></canvas></div>
         <div class="legend-row">
           ${scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};return `<div class="legend-item"><div class="ll" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</div>`;}).join('')}
+          <div class="legend-item"><div class="ll" style="background:${METRIC_COLORS.ftp.line}"></div>FTP</div>
+          <div class="legend-item"><div class="ll" style="background:${METRIC_COLORS.cp.line}"></div>CP</div>
+          <div class="legend-item"><div class="ll" style="background:${METRIC_COLORS.wprime.line}"></div>W'</div>
           <div class="legend-item"><div class="le" style="background:#7B74E0;">R</div>Race</div>
           <div class="legend-item"><div class="le" style="background:var(--red);">!</div>Illness</div>
           <div class="legend-item"><div class="le" style="background:var(--amber);">P</div>Personal</div>
@@ -317,56 +359,56 @@ async function loadChart(){
     if(!canvas)return;
     if(chartInstance){chartInstance.destroy();chartInstance=null;}
 
-    // Build annotation lines for events — match by closest date in range
     const annotations={};
     events.forEach((e,i)=>{
-      // Find closest label index by comparing date strings
-      const evtDate=e.date; // YYYY-MM-DD
-      let xIdx=-1;
-      let minDiff=Infinity;
-      sortedDates.forEach((d,idx)=>{
-        const diff=Math.abs(new Date(d)-new Date(evtDate));
-        if(diff<minDiff){minDiff=diff;xIdx=idx;}
-      });
-      if(xIdx===-1||minDiff>7*24*60*60*1000)return; // skip if >7 days from any data point
+      const evtDate=e.date;
+      let xIdx=-1,minDiff=Infinity;
+      sortedDates.forEach((d,idx)=>{const diff=Math.abs(new Date(d)-new Date(evtDate));if(diff<minDiff){minDiff=diff;xIdx=idx;}});
+      if(xIdx===-1||minDiff>7*24*60*60*1000)return;
       const color=EVENT_COLORS[e.type]||'#888';
       annotations[`event_${i}_${e.id}`]={
-        type:'line',
-        xMin:xIdx,
-        xMax:xIdx,
-        borderColor:color,
-        borderWidth:1.5,
-        borderDash:[4,3],
-        label:{
-          display:true,
-          content:e.title.length>14?e.title.slice(0,14)+'…':e.title,
-          position:'start',
-          backgroundColor:color,
-          color:'#fff',
-          font:{size:9,family:'DM Sans',weight:'600'},
-          padding:{x:5,y:3},
-          borderRadius:4,
-          yAdjust: -8 - (i % 3)*18, // stagger labels vertically so they don't overlap
-        }
+        type:'line',xMin:xIdx,xMax:xIdx,borderColor:color,borderWidth:1.5,borderDash:[4,3],
+        label:{display:true,content:e.title.length>14?e.title.slice(0,14)+'…':e.title,position:'start',backgroundColor:color,color:'#fff',font:{size:9,family:'DM Sans',weight:'600'},padding:{x:5,y:3},borderRadius:4,yAdjust:-8-(i%3)*18}
       };
     });
 
-    const datasets=scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{line:'#888',fill:'rgba(136,136,136,0.05)'};return{label:q.category,data:streams[q.category],borderColor:c.line,backgroundColor:c.fill,borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:c.line,tension:0.4,fill:true,hidden:!activeStreams.has(q.category)};});
+    const wellnessDatasets=scaleQs.map(q=>{
+      const c=STREAM_COLORS[q.category]||{line:'#888',fill:'rgba(136,136,136,0.05)'};
+      return{label:q.category,yAxisID:'yLeft',data:streams[q.category],borderColor:c.line,backgroundColor:c.fill,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.4,fill:true,hidden:!activeStreams.has(q.category)};
+    });
+
+    const trainingDatasets=[
+      {label:'ftp',   yAxisID:'yRight',data:ftpLine,   borderColor:METRIC_COLORS.ftp.line,   backgroundColor:'rgba(0,0,0,0)',borderWidth:2,borderDash:[6,3],pointRadius:0,pointHoverRadius:4,tension:0,fill:false,hidden:!activeStreams.has('ftp')},
+      {label:'cp',    yAxisID:'yRight',data:cpLine,    borderColor:METRIC_COLORS.cp.line,    backgroundColor:'rgba(0,0,0,0)',borderWidth:2,borderDash:[6,3],pointRadius:0,pointHoverRadius:4,tension:0,fill:false,hidden:!activeStreams.has('cp')},
+      {label:'wprime',yAxisID:'yRight',data:wprimeLine,borderColor:METRIC_COLORS.wprime.line,backgroundColor:'rgba(0,0,0,0)',borderWidth:2,borderDash:[4,4],pointRadius:0,pointHoverRadius:4,tension:0,fill:false,hidden:!activeStreams.has('wprime')},
+    ];
+
     chartInstance=new Chart(canvas,{
       type:'line',
-      data:{labels,datasets},
+      data:{labels,datasets:[...wellnessDatasets,...trainingDatasets]},
       options:{
-        responsive:true,
-        maintainAspectRatio:false,
+        responsive:true,maintainAspectRatio:false,
         interaction:{mode:'index',intersect:false},
         plugins:{
           legend:{display:false},
-          tooltip:{backgroundColor:'#1e1e1e',borderColor:'#333',borderWidth:1,titleColor:'#b0ada6',bodyColor:'#f0ede6',padding:10,callbacks:{title:i=>i[0].label,label:i=>` ${i.dataset.label}: ${i.raw!==null?i.raw+'/5':'no data'}`}},
+          tooltip:{
+            backgroundColor:'#1e1e1e',borderColor:'#333',borderWidth:1,titleColor:'#b0ada6',bodyColor:'#f0ede6',padding:10,
+            callbacks:{
+              title:i=>i[0].label,
+              label:i=>{
+                if(i.raw===null)return null;
+                if(['ftp','cp'].includes(i.dataset.label))return ` ${i.dataset.label.toUpperCase()}: ${i.raw}w`;
+                if(i.dataset.label==='wprime')return ` W': ${i.raw}kJ`;
+                return ` ${i.dataset.label}: ${i.raw}/5`;
+              }
+            }
+          },
           annotation:{annotations}
         },
         scales:{
           x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:10,maxRotation:0},border:{color:'#242424'}},
-          y:{min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}}
+          yLeft:{type:'linear',position:'left',min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}},
+          yRight:{type:'linear',position:'right',min:0,grid:{drawOnChartArea:false},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},callback:v=>`${v}`},border:{color:'#242424'}}
         }
       }
     });

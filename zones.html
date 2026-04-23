@@ -516,10 +516,20 @@ function saveMetric(key, unit) {
   const input = document.getElementById(`mc-input-${key}`);
   if (!input) return;
   const val = parseFloat(input.value) || 0;
+  const prev = athleteData[key] || 0;
   athleteData[key] = val;
   // Flag as manually set so auto-calc won't overwrite
   if (key === 'cp')     athleteData.cp_manual     = val > 0;
   if (key === 'wprime') athleteData.wprime_manual  = val > 0;
+  // Log to Supabase history if this is a tracked metric and value changed
+  if (val > 0 && val !== prev && ['ftp','cp','wprime'].includes(key) && currentAthlete) {
+    const today = new Date().toISOString().split('T')[0];
+    fetch(`${SUPABASE_URL}/rest/v1/athlete_metrics_history`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ athlete_id: currentAthlete, date: today, metric: key, value: val })
+    }).catch(console.error);
+  }
   saveToStorage();
   renderPage();
 }
@@ -633,6 +643,25 @@ function calculateCP() {
   if (!athleteData.wprime_manual) athleteData.wprime = avgWprime;
   athleteData.cp_calculated     = avgCP;
   athleteData.wprime_calculated = avgWprime;
+
+  // Log to history if values changed
+  const today = new Date().toISOString().split('T')[0];
+  if (currentAthlete) {
+    if (!athleteData.cp_manual && avgCP !== athleteData._last_logged_cp) {
+      athleteData._last_logged_cp = avgCP;
+      fetch(`${SUPABASE_URL}/rest/v1/athlete_metrics_history`, {
+        method:'POST', headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify({ athlete_id: currentAthlete, date: today, metric: 'cp', value: avgCP })
+      }).catch(console.error);
+    }
+    if (!athleteData.wprime_manual && avgWprime !== athleteData._last_logged_wprime) {
+      athleteData._last_logged_wprime = avgWprime;
+      fetch(`${SUPABASE_URL}/rest/v1/athlete_metrics_history`, {
+        method:'POST', headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify({ athlete_id: currentAthlete, date: today, metric: 'wprime', value: avgWprime })
+      }).catch(console.error);
+    }
+  }
 }
 
 function setWindow(w) {
