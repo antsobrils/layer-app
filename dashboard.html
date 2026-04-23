@@ -6,7 +6,6 @@
 <title>Layer — Coach Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <script>
-  // Set greeting immediately to avoid flash
   document.addEventListener('DOMContentLoaded', () => {
     const h = new Date().getHours();
     const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
@@ -27,8 +26,6 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; display: flex; }
-
-  /* Sidebar */
   .sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 18px; display: flex; flex-direction: column; flex-shrink: 0; position: fixed; height: 100vh; }
   .logo { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); margin-bottom: 36px; }
   .logo span { color: var(--green); }
@@ -47,8 +44,6 @@
   .online-dot { position: absolute; bottom: 1px; right: 1px; width: 8px; height: 8px; background: var(--green); border-radius: 50%; border: 2px solid var(--bg2); }
   .coach-name { font-size: 13px; color: var(--text); font-weight: 500; }
   .coach-role { font-size: 11px; color: var(--text3); }
-
-  /* Main */
   .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 22px 32px 18px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
   .page-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text); }
@@ -61,13 +56,10 @@
   .chip-num.a { color: var(--amber-text); }
   .add-btn { background: var(--green); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
   .add-btn:hover { background: #18875f; }
-
   .content { padding: 24px 32px; flex: 1; max-width: 1000px; }
   .date-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
   .date-text { font-size: 12px; color: var(--text3); font-weight: 500; letter-spacing: 0.03em; }
   .submitted-count { font-size: 12px; color: var(--text3); }
-
-  /* Athlete card */
   .athlete-card { background: var(--card); border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); border-left: 3px solid var(--border2); animation: fadeUp 0.35s ease forwards; opacity: 0; }
   .athlete-card:nth-child(1) { animation-delay: 0.03s; }
   .athlete-card:nth-child(2) { animation-delay: 0.07s; }
@@ -75,16 +67,13 @@
   .athlete-card.flagged { border-left-color: var(--red); }
   .athlete-card.noted   { border-left-color: var(--amber); }
   .athlete-card.great   { border-left-color: var(--green); }
-
   .card-inner { padding: 18px 20px 0; }
-
   .athlete-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
   .big-av { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; flex-shrink: 0; border: 2px solid transparent; }
   .big-av.av-r { background: linear-gradient(135deg,#3a1818,#2a1010); color: var(--red-text); border-color: #3a2020; }
   .big-av.av-a { background: linear-gradient(135deg,#2e2010,#1e1406); color: var(--amber-text); border-color: #3a2a10; }
   .big-av.av-g { background: linear-gradient(135deg,#0d2a1c,#081a10); color: var(--green-text); border-color: #1a3a28; }
   .big-av.av-d { background: linear-gradient(135deg,#262626,#1a1a1a); color: var(--text2); border-color: var(--border2); }
-
   .athlete-info { flex: 1; }
   .athlete-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
   .athlete-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -97,11 +86,8 @@
   .card-actions { margin-left: auto; }
   .copy-btn { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 6px 12px; font-size: 11px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
   .copy-btn:hover { background: var(--bg4); color: var(--text2); }
-
   .note-bubble { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 15px; font-size: 14px; color: var(--text2); font-style: italic; line-height: 1.65; margin-bottom: 14px; }
   .note-empty { font-size: 12px; color: var(--text3); font-style: italic; margin-bottom: 12px; }
-
-  /* Metrics */
   .metrics-row { display: flex; gap: 8px; margin-bottom: 14px; }
   .metric { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
   .metric.alert { background: var(--red-bg); border-color: #3a2020; }
@@ -119,60 +105,26 @@
   .trend-badge.up   { background: rgba(77,201,154,0.15); color: var(--green-text); }
   .trend-badge.down { background: rgba(240,112,112,0.15); color: var(--red-text); }
   .trend-badge.flat { background: rgba(112,112,104,0.15); color: var(--text3); }
-
-  /* ── Card tabs ── */
-  /* ── Training block ── */
   .training-block { padding: 12px 16px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
   .training-row { display: flex; gap: 8px; }
-
-  /* PMC stats — TSS CTL ATL Form */
   .pmc-row { display: flex; gap: 6px; }
   .pmc-stat { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 8px 6px; text-align: center; }
   .pmc-label { font-size: 10px; font-weight: 600; color: var(--text3); display: block; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
   .pmc-val { font-size: 18px; font-weight: 700; color: var(--text2); display: inline; font-family: 'DM Serif Display', serif; }
-  .pmc-arrow { font-size: 11px; margin-left: 3px; }
-  .pmc-arrow.up   { color: var(--green-text); }
-  .pmc-arrow.down { color: var(--red-text); }
-  .pmc-stat.form-pos { background: var(--green-bg); border-color: #1a3a28; }
-  .pmc-stat.form-pos .pmc-label { color: #2a6a48; }
-  .pmc-stat.form-pos .pmc-val { color: var(--green-text); }
-  .pmc-stat.form-neg { background: var(--red-bg); border-color: #3a2020; }
-  .pmc-stat.form-neg .pmc-label { color: #8a4040; }
-  .pmc-stat.form-neg .pmc-val { color: var(--red-text); }
-
-  /* Workout cards */
   .workout-card { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; }
   .workout-card.today-card { background: var(--bg4); border-color: var(--border2); }
   .wc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
   .wc-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
   .wc-connect { font-size: 10px; color: var(--text3); background: var(--bg4); border: 1px solid var(--border2); border-radius: 6px; padding: 2px 7px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
   .wc-connect:hover { color: var(--green-text); border-color: var(--green); }
-  .wc-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .wc-stats { display: flex; gap: 10px; }
-  .wc-stat { display: flex; flex-direction: column; }
-  .wcs-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
-  .wcs-val { font-size: 12px; font-weight: 600; color: var(--text2); }
   .wc-empty { font-size: 12px; color: var(--text3); font-style: italic; }
-
   .training-source { font-size: 10px; color: var(--text3); text-align: right; margin-top: 2px; }
-
   .card-tabs { display: flex; border-top: 1px solid var(--border); }
-  .card-tab {
-    flex: 1; padding: 11px 8px; font-size: 12px; font-weight: 500;
-    color: var(--text3); background: none; border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; border-bottom: 2px solid transparent;
-    transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
+  .card-tab { flex: 1; padding: 11px 8px; font-size: 12px; font-weight: 500; color: var(--text3); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; border-bottom: 2px solid transparent; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
   .card-tab:hover { color: var(--text2); background: var(--bg3); }
   .card-tab.active { color: var(--text); border-bottom-color: var(--green); background: var(--bg3); }
-  .tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); display: none; }
-  .tab-dot.show { display: block; }
-
-  /* ── Tab panels ── */
   .tab-panel { display: none; border-top: 1px solid var(--border); }
   .tab-panel.active { display: block; }
-
-  /* Trends panel */
   .trends-panel { padding: 16px; }
   .stream-toggles { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
   .stream-tog { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border2); background: var(--bg3); font-size: 11px; color: var(--text2); cursor: pointer; transition: all 0.15s; user-select: none; }
@@ -180,8 +132,6 @@
   .tog-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .chart-container { position: relative; width: 100%; height: 180px; }
   canvas.trend-chart { width: 100% !important; height: 180px !important; }
-
-  /* Message panel */
   .message-panel { display: flex; flex-direction: column; max-height: 320px; }
   .message-thread { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
   .msg { max-width: 75%; }
@@ -201,8 +151,6 @@
   .msg-send:hover { background: #18875f; }
   .full-thread-btn { text-align: center; padding: 8px; font-size: 11px; color: var(--text3); cursor: pointer; border-top: 1px solid var(--border); transition: color 0.15s; text-decoration: none; display: block; }
   .full-thread-btn:hover { color: var(--text2); }
-
-  /* Notes panel */
   .notes-panel { padding: 14px 16px; }
   .notes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 200px; overflow-y: auto; }
   .note-entry { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 13px; }
@@ -218,16 +166,12 @@
   .note-input::placeholder { color: var(--text3); }
   .note-save { background: var(--bg4); color: var(--text2); border: 1px solid var(--border2); border-radius: 10px; padding: 9px 14px; font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .note-save:hover { background: var(--green); color: #fff; border-color: var(--green); }
-
-  /* Not submitted */
   .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin: 20px 0 10px; }
   .not-submitted { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; }
   .ns-item { display: inline-flex; align-items: center; gap: 8px; margin-right: 12px; margin-bottom: 4px; }
   .ns-av { width: 26px; height: 26px; border-radius: 50%; background: var(--bg4); color: var(--text3); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
   .ns-name { font-size: 12px; color: var(--text3); }
   .ns-copy { background: transparent; border: 1px solid var(--border2); border-radius: 6px; padding: 3px 8px; font-size: 10px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; }
-
-  /* Modal */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: center; justify-content: center; }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--card); border: 1px solid var(--border2); border-radius: 16px; width: 100%; max-width: 440px; overflow: hidden; animation: fadeUp 0.2s ease forwards; }
@@ -256,14 +200,12 @@
   .invite-copy-btn { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap; }
   .invite-copy-btn:hover { background: var(--bg4); color: var(--text); }
   .invite-note { font-size: 11px; color: var(--text3); line-height: 1.5; }
-
   .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px; gap: 16px; }
   .spinner { width: 28px; height: 28px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
   .loading-text { font-size: 13px; color: var(--text3); }
   .empty-state { text-align: center; padding: 60px 20px; }
   .empty-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--text2); margin-bottom: 8px; }
   .empty-sub { font-size: 14px; color: var(--text3); line-height: 1.7; }
-
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -317,7 +259,6 @@
   </div>
 </div>
 
-<!-- Add Athlete Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -408,7 +349,6 @@ function calcTrend(hist, today) {
   return { pct, avg: avg.toFixed(1), direction: diff>0.2?'up':diff<-0.2?'down':'flat' };
 }
 
-// ── Tab switching on athlete card ──
 function switchCardTab(athleteId, tab) {
   ['message','trends','notes'].forEach(t => {
     document.getElementById(`tab-${t}-${athleteId}`).classList.toggle('active', t===tab);
@@ -419,7 +359,6 @@ function switchCardTab(athleteId, tab) {
   if (tab==='notes') loadNotes(athleteId);
 }
 
-// ── Trend chart ──
 function toggleStream(athleteId, category) {
   const btn = document.getElementById(`tog-${athleteId}-${category}`);
   btn.classList.toggle('off');
@@ -458,7 +397,6 @@ function renderTrendChart(athleteId) {
   });
 }
 
-// ── Messages ──
 async function loadMessages(athleteId) {
   const container = document.getElementById(`msgs-${athleteId}`);
   if (!container) return;
@@ -490,7 +428,6 @@ function handleMsgKey(e, athleteId) {
   if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMessage(athleteId); }
 }
 
-// ── Notes ──
 async function loadNotes(athleteId) {
   const container = document.getElementById(`notes-list-${athleteId}`);
   if (!container) return;
@@ -530,7 +467,6 @@ function handleNoteKey(e, athleteId) {
   if (e.key==='Enter'&&e.metaKey) { e.preventDefault(); saveNote(athleteId); }
 }
 
-// ── Unread badge ──
 async function checkUnread() {
   const athletes = await api(`athletes?coach_id=eq.${COACH_ID}`);
   if (!athletes||athletes.length===0) return;
@@ -540,7 +476,6 @@ async function checkUnread() {
   if (unread&&unread.length>0) { badge.textContent=unread.length; badge.style.display='block'; }
 }
 
-// ── Main load ──
 async function loadDashboard() {
   const today = new Date().toISOString().split('T')[0];
   const hour = new Date().getHours();
@@ -577,7 +512,7 @@ async function loadDashboard() {
     a._histByQ = Object.fromEntries(scaleQs.map(q=>[q.id, athHist.filter(r=>r.question_id===q.id&&r.date!==today).sort((a,b)=>a.date>b.date?1:-1).map(r=>r.score)]));
   });
 
-  const submitted   = athletes.filter(a=>byAthlete[a.id]);
+  const submitted    = athletes.filter(a=>byAthlete[a.id]);
   const notSubmitted = athletes.filter(a=>!byAthlete[a.id]);
   const order = {flagged:0,noted:1,great:2,clean:3};
   submitted.sort((a,b)=>order[getCategory(byAthlete[a.id])]-order[getCategory(byAthlete[b.id])]);
@@ -633,51 +568,30 @@ async function loadDashboard() {
             ${textR?`<div class="note-bubble">"${textR.text_response}"</div>`:`<div class="note-empty">No note left today</div>`}
             <div class="metrics-row">${metrics}</div>
           </div>
-
           <div class="training-block">
             <div class="pmc-row">
-              <div class="pmc-stat">
-                <span class="pmc-label">TSS</span>
-                <span class="pmc-val">—</span>
-              </div>
-              <div class="pmc-stat">
-                <span class="pmc-label">CTL</span>
-                <span class="pmc-val">—</span><span class="pmc-arrow up" style="display:none">▲</span>
-              </div>
-              <div class="pmc-stat">
-                <span class="pmc-label">ATL</span>
-                <span class="pmc-val">—</span><span class="pmc-arrow down" style="display:none">▼</span>
-              </div>
-              <div class="pmc-stat">
-                <span class="pmc-label">Form</span>
-                <span class="pmc-val">—</span>
-              </div>
+              <div class="pmc-stat"><span class="pmc-label">TSS</span><span class="pmc-val">—</span></div>
+              <div class="pmc-stat"><span class="pmc-label">CTL</span><span class="pmc-val">—</span></div>
+              <div class="pmc-stat"><span class="pmc-label">ATL</span><span class="pmc-val">—</span></div>
+              <div class="pmc-stat"><span class="pmc-label">Form</span><span class="pmc-val">—</span></div>
             </div>
             <div class="training-row">
               <div class="workout-card">
-                <div class="wc-header">
-                  <span class="wc-label">Yesterday</span>
-                  <button class="wc-connect" onclick="alert('Training Peaks integration coming soon.')">Connect TP</button>
-                </div>
+                <div class="wc-header"><span class="wc-label">Yesterday</span><button class="wc-connect" onclick="alert('Training Peaks integration coming soon.')">Connect TP</button></div>
                 <div class="wc-empty">Connect Training Peaks to see yesterday's workout</div>
               </div>
               <div class="workout-card today-card">
-                <div class="wc-header">
-                  <span class="wc-label">Today · Prescribed</span>
-                  <button class="wc-connect" onclick="alert('Training Peaks integration coming soon.')">Connect TP</button>
-                </div>
+                <div class="wc-header"><span class="wc-label">Today · Prescribed</span><button class="wc-connect" onclick="alert('Training Peaks integration coming soon.')">Connect TP</button></div>
                 <div class="wc-empty">Connect Training Peaks to see today's session</div>
               </div>
             </div>
             <div class="training-source">Training Peaks · Vekta integration coming soon</div>
           </div>
-
           <div class="card-tabs">
             <button class="card-tab" id="tab-message-${a.id}" onclick="switchCardTab('${a.id}','message')">💬 Message</button>
             <button class="card-tab" id="tab-trends-${a.id}" onclick="switchCardTab('${a.id}','trends')">📈 Trends</button>
             <button class="card-tab" id="tab-notes-${a.id}" onclick="switchCardTab('${a.id}','notes')">📋 Notes</button>
           </div>
-
           <div class="tab-panel" id="panel-message-${a.id}">
             <div class="message-panel">
               <div class="message-thread" id="msgs-${a.id}"><div class="msg-empty">Click to load messages</div></div>
@@ -688,14 +602,12 @@ async function loadDashboard() {
             </div>
             <a class="full-thread-btn" href="messages.html?coach=${COACH_ID}&athlete=${a.id}">View full thread →</a>
           </div>
-
           <div class="tab-panel" id="panel-trends-${a.id}">
             <div class="trends-panel">
               <div class="stream-toggles">${toggles}</div>
               <div class="chart-container"><canvas id="chart-${a.id}" class="trend-chart"></canvas></div>
             </div>
           </div>
-
           <div class="tab-panel" id="panel-notes-${a.id}">
             <div class="notes-panel">
               <div class="notes-list" id="notes-list-${a.id}"><div class="notes-empty">Click Notes to load</div></div>
@@ -718,7 +630,6 @@ async function loadDashboard() {
   checkUnread();
 }
 
-// ── Modal ──
 function openModal() {
   document.getElementById('modal-overlay').classList.add('open');
   document.getElementById('add-name').value=''; document.getElementById('add-email').value='';
@@ -738,6 +649,7 @@ function switchTab(tab) {
     const base=location.href.split('/dashboard')[0];
     document.getElementById('invite-link-text').textContent=`${base}/athlete_signup.html?coach=${COACH_ID}`;
   }
+}
 
 function copyInviteLink() {
   const base=location.href.split('/dashboard')[0];
