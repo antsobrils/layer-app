@@ -290,7 +290,7 @@ async function loadChart(){
       <div class="stream-row"><span class="stream-lbl">Streams</span>${togglesHtml}</div>
       <div class="chart-card">
         <div class="cc-header"><span class="cc-title">Wellness metrics - ${sortedDates.length} days of data</span><span class="cc-sub">Daily scores 1-5</span></div>
-        <canvas id="macro-canvas" class="macro-chart" style="height:240px"></canvas>
+        <div style="position:relative;height:240px;"><canvas id="macro-canvas"></canvas></div>
         <div class="legend-row">
           ${scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};return `<div class="legend-item"><div class="ll" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</div>`;}).join('')}
           <div class="legend-item"><div class="le" style="background:#7B74E0;">R</div>Race</div>
