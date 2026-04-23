@@ -297,7 +297,9 @@ async function loadAthlete(athleteId) {
   // Load from training_load table (reuse or create athlete_zones table)
   // For now store in localStorage keyed by athlete
   const stored = localStorage.getItem(`zones_${athleteId}`);
-  athleteData = stored ? JSON.parse(stored) : { ftp:0, cp:0, wprime:0, vo2max:0, peak_power:0, threshold_hr:0, weight:70, power_profile:{}, zone_overrides:{} };
+  athleteData = stored ? JSON.parse(stored) : { ftp:0, cp:0, wprime:0, vo2max:0, peak_power:0, threshold_hr:0, weight:0, power_profile:{}, zone_overrides:{} };
+  // Auto-calculate CP and W' from existing power profile data
+  calculateCP();
 
   document.getElementById('save-btn').style.display = 'block';
   renderPage();
@@ -321,11 +323,20 @@ function renderPage() {
 
   const metricsHtml = metrics.map(m => {
     const isWeight = m.key === 'weight';
+    const isCalcable = m.key === 'cp' || m.key === 'wprime';
+    const isManual = isCalcable && athleteData[`${m.key}_manual`];
+    const calcVal = isCalcable ? athleteData[`${m.key}_calculated`] : null;
     const unitToggle = isWeight ? `
       <div style="display:flex;gap:4px;margin-top:6px;">
         <button onclick="setWeightUnit('kg')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);background:${(d.weight_unit||'kg')==='kg'?'var(--green)':'var(--bg3)'};color:${(d.weight_unit||'kg')==='kg'?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif;">kg</button>
         <button onclick="setWeightUnit('lbs')" style="font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);background:${(d.weight_unit||'kg')==='lbs'?'var(--green)':'var(--bg3)'};color:${(d.weight_unit||'kg')==='lbs'?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif;">lbs</button>
       </div>` : '';
+    const calcBadge = isCalcable && calcVal ? `
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">
+        ${isManual
+          ? `Manual override · <span style="color:var(--green-text);cursor:pointer;" onclick="resetCalc('${m.key}')">Reset to calculated (${calcVal}${m.key==='wprime'?'kJ':'w'})</span>`
+          : `Auto-calculated from power profile`}
+      </div>` : (isCalcable ? `<div style="font-size:10px;color:var(--text3);margin-top:4px;">Enter 2min, 5min, 10min or 20min powers to auto-calculate</div>` : '');
     return `
     <div class="metric-card" id="mc-${m.key}">
       <div class="mc-label">${m.label}</div>
@@ -333,6 +344,7 @@ function renderPage() {
         <span id="mc-display-${m.key}">${m.value||'—'}</span>
         <span class="mc-unit">${m.value?m.unit:''}</span>
       </div>
+      ${calcBadge}
       ${unitToggle}
       <button class="mc-edit-btn" onclick="editMetric('${m.key}','${m.unit}')">Edit</button>
     </div>`;
@@ -477,6 +489,14 @@ function renderPage() {
     </div>`;
 }
 
+function resetCalc(key) {
+  athleteData[`${key}_manual`] = false;
+  const calcVal = athleteData[`${key}_calculated`];
+  if (calcVal) athleteData[key] = calcVal;
+  saveToStorage();
+  renderPage();
+}
+
 function setWeightUnit(unit) {
   athleteData.weight_unit = unit;
   saveToStorage();
@@ -497,7 +517,9 @@ function saveMetric(key, unit) {
   if (!input) return;
   const val = parseFloat(input.value) || 0;
   athleteData[key] = val;
-  // Re-render to update zones if FTP or threshold_hr changed
+  // Flag as manually set so auto-calc won't overwrite
+  if (key === 'cp')     athleteData.cp_manual     = val > 0;
+  if (key === 'wprime') athleteData.wprime_manual  = val > 0;
   saveToStorage();
   renderPage();
 }
@@ -566,8 +588,51 @@ function savePower(key) {
   if (!athleteData.power_profile) athleteData.power_profile = {};
   if (val) athleteData.power_profile[key] = val;
   else delete athleteData.power_profile[key];
+  // Auto-calculate CP and W' if not manually overridden
+  if (!athleteData.cp_manual || !athleteData.wprime_manual) {
+    calculateCP();
+  }
   saveToStorage();
   renderPage();
+}
+
+// CP and W' calculation using best available from 2min, 5min, 10min, 20min
+// Formula: CP = (P1*T1 - P2*T2) / (T1 - T2)
+//          W' = (P1 - CP) * T1
+function calculateCP() {
+  const pp = athleteData.power_profile || {};
+  // Candidate intervals in seconds
+  const candidates = [
+    { key:'p2m',  t:120,  p: pp.p2m  },
+    { key:'p5m',  t:300,  p: pp.p5m  },
+    { key:'p10m', t:600,  p: pp.p10m },
+    { key:'p20m', t:1200, p: pp.p20m },
+  ].filter(c => c.p && c.p > 0);
+
+  if (candidates.length < 2) return; // need at least 2 data points
+
+  // Generate all pairs (short + long) and calculate CP/W' for each
+  const results = [];
+  for (let i = 0; i < candidates.length; i++) {
+    for (let j = i + 1; j < candidates.length; j++) {
+      const short = candidates[i]; // shorter duration = higher power
+      const long  = candidates[j];
+      const cp = (short.p * short.t - long.p * long.t) / (short.t - long.t);
+      const wprime = (short.p - cp) * short.t;
+      if (cp > 0 && wprime > 0) results.push({ cp, wprime });
+    }
+  }
+
+  if (!results.length) return;
+
+  // Average across all valid pairs
+  const avgCP     = Math.round(results.reduce((s,r) => s + r.cp,     0) / results.length);
+  const avgWprime = Math.round(results.reduce((s,r) => s + r.wprime, 0) / results.length / 1000 * 10) / 10; // kJ, 1 decimal
+
+  if (!athleteData.cp_manual)     athleteData.cp     = avgCP;
+  if (!athleteData.wprime_manual) athleteData.wprime = avgWprime;
+  athleteData.cp_calculated     = avgCP;
+  athleteData.wprime_calculated = avgWprime;
 }
 
 function setWindow(w) {
