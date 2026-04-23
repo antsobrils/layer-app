@@ -127,7 +127,7 @@
     <a class="nav-item" id="nav-roster" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
     <a class="nav-item active" id="nav-messages" href="messages.html"><div class="nav-dot"></div>Messages</a>
     <a class="nav-item" id="nav-macro" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
-    <a class="nav-item" href="#"><div class="nav-dot"></div>Athlete profiles</a>
+    <a <a class="nav-item" id="nav-athletes" href="athletes.html"><div class="nav-dot"></div>Athlete profiles</a>
     <a class="nav-item" href="#"><div class="nav-dot"></div>Race calendar</a>
   </div>
   <div class="nav-section">
@@ -184,6 +184,8 @@ if (_p.get('coach')) {
   document.getElementById('nav-roster').href   = `dashboard.html?coach=${COACH_ID}`;
   document.getElementById('nav-messages').href = `messages.html?coach=${COACH_ID}`;
   document.getElementById('nav-macro').href    = `macro.html?coach=${COACH_ID}`;
+  document.getElementById('nav-athletes').href = `athletes.html?coach=${COACH_ID}`;
+}
 }
 
 const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
