@@ -5,11 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Layer — Macro Trends</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const h = new Date().getHours();
-  });
-</script>
 <style>
   :root {
     --bg:#0f0f0f;--bg2:#141414;--bg3:#1e1e1e;--bg4:#262626;
@@ -73,10 +68,6 @@
   .cc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
   .cc-title{font-size:13px;font-weight:600;color:var(--text2);}
   .cc-sub{font-size:11px;color:var(--text3);}
-  .chart-wrap{display:flex;}
-  .y-axis{width:28px;display:flex;flex-direction:column;justify-content:space-between;padding-bottom:22px;flex-shrink:0;}
-  .y-lbl{font-size:10px;color:var(--text3);text-align:right;}
-  .chart-svg-wrap{flex:1;}
   canvas.macro-chart{width:100%!important;}
   .legend-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;}
   .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
@@ -128,7 +119,7 @@
     <a class="nav-item" id="nav-roster" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
     <a class="nav-item" id="nav-messages" href="messages.html"><div class="nav-dot"></div>Messages</a>
     <a class="nav-item active" id="nav-macro" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
-    <a class="nav-item" href="#"><div class="nav-dot"></div>Athlete profiles</a>
+    <a class="nav-item" id="nav-athletes" href="athletes.html"><div class="nav-dot"></div>Athlete profiles</a>
     <a class="nav-item" href="#"><div class="nav-dot"></div>Race calendar</a>
   </div>
   <div class="nav-section">
@@ -213,15 +204,23 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <script>
 const SUPABASE_URL='https://eaqlyzvggjewavyxpbwk.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
 const _p=new URLSearchParams(window.location.search);
 const COACH_ID=_p.get('coach')||'051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
-if(_p.get('coach')){document.getElementById('nav-roster').href=`dashboard.html?coach=${COACH_ID}`;document.getElementById('nav-messages').href=`messages.html?coach=${COACH_ID}`;document.getElementById('nav-macro').href=`macro.html?coach=${COACH_ID}`;}
+if(_p.get('coach')){
+  document.getElementById('nav-roster').href=`dashboard.html?coach=${COACH_ID}`;
+  document.getElementById('nav-messages').href=`messages.html?coach=${COACH_ID}`;
+  document.getElementById('nav-macro').href=`macro.html?coach=${COACH_ID}`;
+  document.getElementById('nav-athletes').href=`athletes.html?coach=${COACH_ID}`;
+}
 const headers={'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`};
 const STREAM_COLORS={sleep:{line:'#4dc99a',fill:'rgba(77,201,154,0.08)'},motivation:{line:'#f0a830',fill:'rgba(240,168,48,0.08)'},stress:{line:'#f07070',fill:'rgba(240,112,112,0.08)'},readiness:{line:'#7B8FF0',fill:'rgba(123,143,240,0.08)'}};
+const EVENT_COLORS={race:'#7B74E0',illness:'#E24B4A',personal:'#d4890a',training_camp:'#1D9E75'};
 let chartInstance=null,currentAthlete=null,currentWindow='3m',allQuestions=[],activeStreams=new Set(['sleep','motivation','stress','readiness']);
+
 async function api(path){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers});return res.json();}
 function getInitials(n){return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);}
 function windowDays(w){return{'1m':30,'3m':90,'6m':180,'12m':365}[w]||90;}
@@ -234,7 +233,7 @@ async function init(){
   if(!athletes||!athletes.length){document.getElementById('athlete-list').innerHTML='<div class="loading-inline">No athletes yet.</div>';return;}
   document.getElementById('roster-sub').textContent=`${athletes.length} athlete${athletes.length!==1?'s':''}`;
   document.getElementById('athlete-list').innerHTML=athletes.map(a=>`
-    <div class="athlete-row" id="ar-${a.id}" onclick="selectAthlete('${a.id}','${a.name.replace(/'/g,"\'")}','${a.email}')">
+    <div class="athlete-row" id="ar-${a.id}" onclick="selectAthlete('${a.id}','${a.name.replace(/'/g,"\\'")}','${a.email}')">
       <div class="ar-av">${getInitials(a.name)}</div>
       <div class="ar-info"><div class="ar-name">${a.name}</div><div class="ar-sub">${a.email}</div></div>
       <div class="ar-arrow">&#x203A;</div>
@@ -273,6 +272,7 @@ async function loadChart(){
   const togglesHtml=scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};const off=!activeStreams.has(q.category)?'off':'';return `<button class="stog ${off}" id="stog-${q.category}" onclick="toggleStream('${q.category}')"><div class="sdot" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</button>`;}).join('');
   const winLabel={'1m':'1 month','3m':'3 months','6m':'6 months','12m':'12 months'}[currentWindow];
   const eventCards=events.length>0?events.map(e=>`<div class="event-card ${e.type}"><div class="ec-type">${e.type.replace('_',' ')}</div><div class="ec-title">${e.title}</div><div class="ec-date">${new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>${e.priority?`<span class="ec-tag">${e.priority}-race</span>`:''}</div>`).join(''):'<div style="font-size:13px;color:var(--text3);font-style:italic;">No events yet. Add a race or event to annotate the timeline.</div>';
+
   panel.innerHTML=`
     <div class="chart-header">
       <div class="chart-header-left">
@@ -290,10 +290,7 @@ async function loadChart(){
       <div class="stream-row"><span class="stream-lbl">Streams</span>${togglesHtml}</div>
       <div class="chart-card">
         <div class="cc-header"><span class="cc-title">Wellness metrics - ${sortedDates.length} days of data</span><span class="cc-sub">Daily scores 1-5</span></div>
-        <div class="chart-wrap">
-          <div class="y-axis"><div class="y-lbl">5</div><div class="y-lbl">4</div><div class="y-lbl">3</div><div class="y-lbl">2</div><div class="y-lbl">1</div></div>
-          <div class="chart-svg-wrap"><canvas id="macro-canvas" class="macro-chart" style="height:240px"></canvas></div>
-        </div>
+        <canvas id="macro-canvas" class="macro-chart" style="height:240px"></canvas>
         <div class="legend-row">
           ${scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};return `<div class="legend-item"><div class="ll" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</div>`;}).join('')}
           <div class="legend-item"><div class="le" style="background:#7B74E0;">R</div>Race</div>
@@ -306,18 +303,64 @@ async function loadChart(){
         <div class="events-grid" id="events-grid">${eventCards}</div>
       </div>
     </div>`;
+
   setTimeout(()=>{
     const canvas=document.getElementById('macro-canvas');
     if(!canvas)return;
     if(chartInstance){chartInstance.destroy();chartInstance=null;}
+
+    // Build annotation lines for events that fall within the chart date range
+    const annotations={};
+    events.forEach((e,i)=>{
+      const evtLabel=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const xIdx=labels.indexOf(evtLabel);
+      if(xIdx===-1)return; // event outside visible range
+      const color=EVENT_COLORS[e.type]||'#888';
+      annotations[`event${i}`]={
+        type:'line',
+        xMin:xIdx,
+        xMax:xIdx,
+        borderColor:color,
+        borderWidth:1.5,
+        borderDash:[4,3],
+        label:{
+          display:true,
+          content:e.title.length>12?e.title.slice(0,12)+'…':e.title,
+          position:'start',
+          backgroundColor:color,
+          color:'#fff',
+          font:{size:9,family:'DM Sans',weight:'600'},
+          padding:{x:5,y:3},
+          borderRadius:4,
+          yAdjust:-8,
+        }
+      };
+    });
+
     const datasets=scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{line:'#888',fill:'rgba(136,136,136,0.05)'};return{label:q.category,data:streams[q.category],borderColor:c.line,backgroundColor:c.fill,borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:c.line,tension:0.4,fill:true,hidden:!activeStreams.has(q.category)};});
-    chartInstance=new Chart(canvas,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',borderColor:'#333',borderWidth:1,titleColor:'#b0ada6',bodyColor:'#f0ede6',padding:10,callbacks:{title:i=>i[0].label,label:i=>` ${i.dataset.label}: ${i.raw!==null?i.raw+'/5':'no data'}`}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:10,maxRotation:0},border:{color:'#242424'}},y:{min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}}}}});
+    chartInstance=new Chart(canvas,{
+      type:'line',
+      data:{labels,datasets},
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{display:false},
+          tooltip:{backgroundColor:'#1e1e1e',borderColor:'#333',borderWidth:1,titleColor:'#b0ada6',bodyColor:'#f0ede6',padding:10,callbacks:{title:i=>i[0].label,label:i=>` ${i.dataset.label}: ${i.raw!==null?i.raw+'/5':'no data'}`}},
+          annotation:{annotations}
+        },
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:10,maxRotation:0},border:{color:'#242424'}},
+          y:{min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}}
+        }
+      }
+    });
   },50);
 }
 
 function toggleStream(cat){
-  const btn=document.getElementById(`stog-${cat}`);
-  if(!btn)return;
+  const btn=document.getElementById(`stog-${cat}`);if(!btn)return;
   btn.classList.toggle('off');
   if(activeStreams.has(cat))activeStreams.delete(cat);else activeStreams.add(cat);
   if(!chartInstance)return;
@@ -349,8 +392,17 @@ async function saveEvent(){
   const date=document.getElementById('event-date').value;
   const priority=document.getElementById('event-priority').value||null;
   const notes=document.getElementById('event-notes').value.trim()||null;
-  if(!title||!date)return;
-  await fetch(`${SUPABASE_URL}/rest/v1/calendar_events`,{method:'POST',headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({athlete_id:currentAthlete.id,type,title,date,priority,notes})});
+  if(!title||!date){alert('Please fill in a title and date.');return;}
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/calendar_events`,{
+    method:'POST',
+    headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({athlete_id:currentAthlete.id,type,title,date,priority,notes})
+  });
+  if(!res.ok){
+    const err=await res.text();
+    alert('Could not save event: '+err);
+    return;
+  }
   closeModal();
   loadChart();
 }
