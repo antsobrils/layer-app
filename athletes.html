@@ -290,18 +290,18 @@ async function loadRoster() {
     return;
   }
 
-  // Fetch today's submissions to show flags
+  // Fetch today's submissions
   const todayStr = today();
   const athleteIds = athletes.map(a => a.id).join(',');
-  const subRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=in.(${athleteIds})&submitted_at=gte.${todayStr}T00:00:00&select=athlete_id,flagged`, { headers });
-  const subs = await subRes.json();
-  const subMap = {};
-  subs.forEach(s => subMap[s.athlete_id] = s);
+  let subMap = {};
+  try {
+    const subRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=in.(${athleteIds})&submitted_at=gte.${todayStr}T00:00:00&select=athlete_id`, { headers });
+    const subs = await subRes.json();
+    if (Array.isArray(subs)) subs.forEach(s => subMap[s.athlete_id] = true);
+  } catch(e) { /* silent fail - submission status optional */ }
 
   list.innerHTML = athletes.map(a => {
-    const sub = subMap[a.id];
-    const flagged = sub?.flagged;
-    const submitted = !!sub;
+    const submitted = !!subMap[a.id];
     return `
       <div class="athlete-row" id="row-${a.id}" onclick="selectAthlete('${a.id}')">
         <div class="av ${avColor(a.name)}">${getInitials(a.name)}</div>
@@ -309,7 +309,6 @@ async function loadRoster() {
           <div class="athlete-name">${a.name}</div>
           <div class="athlete-meta">${submitted ? 'Submitted today' : 'Not yet submitted'}</div>
         </div>
-        ${flagged ? '<div class="flag-dot"></div>' : ''}
       </div>`;
   }).join('');
 
@@ -334,7 +333,7 @@ async function selectAthlete(athleteId) {
 
   // Fetch today's check-in
   const todayStr = today();
-  const ciRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=eq.${athleteId}&submitted_at=gte.${todayStr}T00:00:00&select=*&order=submitted_at.desc&limit=1`, { headers });
+  const ciRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=eq.${athleteId}&submitted_at=gte.${todayStr}T00:00:00&select=submitted_at,sleep_score,motivation_score,stress_score,readiness_score,text_response&order=submitted_at.desc&limit=1`, { headers });
   const cis = await ciRes.json();
   const ci = cis[0] || null;
 
@@ -364,7 +363,7 @@ async function selectAthlete(athleteId) {
 
   const todayFmt = fmtDate(todayStr);
   const submittedTime = ci?.submitted_at ? new Date(ci.submitted_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : null;
-  const flagged = ci?.flagged;
+  const flagged = ci && (ci.sleep_score===1 || ci.motivation_score===1 || ci.stress_score===1 || ci.readiness_score===1);
 
   profile.innerHTML = `
     <div class="fade-up">
