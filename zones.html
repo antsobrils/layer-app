@@ -245,22 +245,22 @@ const INTERVALS = [
 
 // Power zone definitions as % of FTP
 const POWER_ZONES = [
-  { key:'z6', label:'Zone 6 – Neuromuscular', cls:'z-z6', minPct:null, maxPct:null, fixedMin:null }, // >150% FTP
-  { key:'z5', label:'Zone 5 – VO2',           cls:'z-z5', minPct:106,  maxPct:150 },
-  { key:'z4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-z4', minPct:91, maxPct:105 },
-  { key:'ss', label:'Sweet Spot',              cls:'z-ss', minPct:84,  maxPct:97  },
-  { key:'z3', label:'Zone 3 – Tempo',          cls:'z-z3', minPct:76,  maxPct:90  },
-  { key:'z2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-z2', minPct:56, maxPct:75 },
   { key:'z1', label:'Zone 1 – Active Recovery', cls:'z-z1', minPct:0,  maxPct:55  },
+  { key:'z2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-z2', minPct:56, maxPct:75 },
+  { key:'z3', label:'Zone 3 – Tempo',          cls:'z-z3', minPct:76,  maxPct:90  },
+  { key:'ss', label:'Sweet Spot',              cls:'z-ss', minPct:84,  maxPct:97  },
+  { key:'z4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-z4', minPct:91, maxPct:105 },
+  { key:'z5', label:'Zone 5 – VO2',           cls:'z-z5', minPct:106,  maxPct:150 },
+  { key:'z6', label:'Zone 6 – Neuromuscular', cls:'z-z6', minPct:null, maxPct:null },
 ];
 
 // HR zone definitions as % of Threshold HR
 const HR_ZONES = [
-  { key:'hr5', label:'Zone 5 – VO2',           cls:'z-hr5', minPct:106, maxPct:null },
-  { key:'hr4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-hr4', minPct:94, maxPct:105 },
-  { key:'hr3', label:'Zone 3 – Tempo',          cls:'z-hr3', minPct:84, maxPct:93  },
-  { key:'hr2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-hr2', minPct:69, maxPct:83 },
   { key:'hr1', label:'Zone 1 – Active Recovery', cls:'z-hr1', minPct:0,  maxPct:68  },
+  { key:'hr2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-hr2', minPct:69, maxPct:83 },
+  { key:'hr3', label:'Zone 3 – Tempo',          cls:'z-hr3', minPct:84, maxPct:93  },
+  { key:'hr4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-hr4', minPct:94, maxPct:105 },
+  { key:'hr5', label:'Zone 5 – VO2',           cls:'z-hr5', minPct:106, maxPct:null },
 ];
 
 let currentAthlete = null;
