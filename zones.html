@@ -90,6 +90,8 @@
   .z-z3{background:#281a00;color:#ffa030;border:1px solid #5a3a00;}
   .z-z2{background:#0a2010;color:#40c060;border:1px solid #1a4a20;}
   .z-z1{background:#1a1a2a;color:#8090c0;border:1px solid #2a2a4a;}
+  .z-ss{background:#1a2800;color:#90d020;border:1px solid #3a5a00;}
+  .z-z7{background:#2a0a0a;color:#ff3030;border:1px solid #6a0a0a;}
   /* HR zones colors */
   .z-hr5{background:#280a0a;color:#ff5050;border:1px solid #6a1a1a;}
   .z-hr4{background:#1a0a28;color:#c060ff;border:1px solid #4a1a6a;}
@@ -245,22 +247,22 @@ const INTERVALS = [
 
 // Power zone definitions as % of FTP
 const POWER_ZONES = [
-  { key:'z1', label:'Zone 1 – Active Recovery', cls:'z-z1', minPct:0,  maxPct:55  },
-  { key:'z2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-z2', minPct:56, maxPct:75 },
-  { key:'z3', label:'Zone 3 – Tempo',          cls:'z-z3', minPct:76,  maxPct:90  },
-  { key:'ss', label:'Sweet Spot',              cls:'z-ss', minPct:84,  maxPct:97  },
-  { key:'z4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-z4', minPct:91, maxPct:105 },
-  { key:'z5', label:'Zone 5 – VO2',           cls:'z-z5', minPct:106,  maxPct:150 },
-  { key:'z6', label:'Zone 6 – Neuromuscular', cls:'z-z6', minPct:null, maxPct:null },
+  { key:'z1', label:'Zone 1 – Active Recovery',   cls:'z-z1', minPct:0,   maxPct:55,  desc:'<55%'      },
+  { key:'z2', label:'Zone 2 – Endurance',          cls:'z-z2', minPct:56,  maxPct:75,  desc:'56–75%'    },
+  { key:'z3', label:'Zone 3 – Tempo',              cls:'z-z3', minPct:76,  maxPct:90,  desc:'76–90%'    },
+  { key:'ss', label:'Sweet Spot',                  cls:'z-ss', minPct:87,  maxPct:93,  desc:'87–93%'    },
+  { key:'z4', label:'Zone 4 – Lactate Threshold',  cls:'z-z4', minPct:91,  maxPct:105, desc:'91–105%'   },
+  { key:'z5', label:'Zone 5 – VO2Max',             cls:'z-z5', minPct:106, maxPct:120, desc:'106–120%'  },
+  { key:'z6', label:'Zone 6 – Anaerobic Capacity', cls:'z-z6', minPct:121, maxPct:null,desc:'>121%'     },
 ];
 
 // HR zone definitions as % of Threshold HR
 const HR_ZONES = [
-  { key:'hr1', label:'Zone 1 – Active Recovery', cls:'z-hr1', minPct:0,  maxPct:68  },
-  { key:'hr2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-hr2', minPct:69, maxPct:83 },
-  { key:'hr3', label:'Zone 3 – Tempo',          cls:'z-hr3', minPct:84, maxPct:93  },
-  { key:'hr4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-hr4', minPct:94, maxPct:105 },
-  { key:'hr5', label:'Zone 5 – VO2',           cls:'z-hr5', minPct:106, maxPct:null },
+  { key:'hr1', label:'Zone 1 – Active Recovery',  cls:'z-hr1', minPct:0,   maxPct:68,  desc:'<68%'     },
+  { key:'hr2', label:'Zone 2 – Endurance',         cls:'z-hr2', minPct:69,  maxPct:83,  desc:'69–83%'   },
+  { key:'hr3', label:'Zone 3 – Tempo',             cls:'z-hr3', minPct:84,  maxPct:94,  desc:'84–94%'   },
+  { key:'hr4', label:'Zone 4 – Lactate Threshold', cls:'z-hr4', minPct:95,  maxPct:105, desc:'95–105%'  },
+  { key:'hr5', label:'Zone 5 – VO2Max',            cls:'z-hr5', minPct:106, maxPct:null,desc:'>106%'    },
 ];
 
 let currentAthlete = null;
@@ -328,35 +330,60 @@ function renderPage() {
 
   // Power zones
   const powerZonesHtml = POWER_ZONES.map(z => {
+    const pctOverride = (d.zone_overrides||{})[`${z.key}_pct`];
+    const effectiveDesc = pctOverride || z.desc;
     const override = (d.zone_overrides||{})[z.key];
     let rangeStr = '—';
+    // Use custom pct if overridden
+    let minP = z.minPct, maxP = z.maxPct;
+    if (pctOverride) {
+      const parts = pctOverride.replace('%','').replace('>','').replace('<','').split('–').map(Number);
+      if (parts.length === 2) { minP = parts[0]; maxP = parts[1]; }
+      else if (pctOverride.startsWith('>')) minP = parts[0];
+    }
     if (override) {
       rangeStr = override;
     } else if (ftp > 0) {
-      if (z.key === 'z6') rangeStr = `${Math.round(ftp*1.5)+1}+ W`;
-      else rangeStr = `${Math.round(ftp*z.minPct/100)} – ${Math.round(ftp*z.maxPct/100)} W`;
+      if (z.key === 'z6') rangeStr = `${Math.round(ftp*minP/100)}+ W`;
+      else rangeStr = `${Math.round(ftp*minP/100)} – ${Math.round(ftp*maxP/100)} W`;
     }
     return `<div class="zone-row">
-      <div class="zone-badge ${z.cls}">${z.label}</div>
+      <div style="display:flex;flex-direction:column;min-width:200px;">
+        <div class="zone-badge ${z.cls}">${z.label}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;padding-left:2px;" id="zpct-display-${z.key}">${effectiveDesc} of FTP</div>
+      </div>
       <div class="zone-range" id="zrange-${z.key}">${rangeStr}</div>
-      <button class="zone-override" onclick="overrideZone('${z.key}','power')">Override</button>
+      <button class="zone-override" onclick="overridePct('${z.key}','power')" title="Change % ranges">% ranges</button>
+      <button class="zone-override" onclick="overrideZone('${z.key}','power')" title="Override watt values">W override</button>
     </div>`;
   }).join('');
 
   // HR zones
   const hrZonesHtml = HR_ZONES.map(z => {
+    const pctOverride = (d.zone_overrides||{})[`${z.key}_pct`];
+    const effectiveDesc = pctOverride || z.desc;
     const override = (d.zone_overrides||{})[z.key];
     let rangeStr = '—';
+    let minP = z.minPct, maxP = z.maxPct;
+    if (pctOverride) {
+      const parts = pctOverride.replace('%','').replace('>','').replace('<','').split('–').map(Number);
+      if (parts.length === 2) { minP = parts[0]; maxP = parts[1]; }
+      else if (pctOverride.startsWith('>')) minP = parts[0];
+    }
     if (override) {
       rangeStr = override;
     } else if (thr > 0) {
-      if (z.key === 'hr5') rangeStr = `${Math.round(thr*z.minPct/100)}+ bpm`;
-      else rangeStr = `${Math.round(thr*z.minPct/100)} – ${Math.round(thr*z.maxPct/100)} bpm`;
+      if (z.key === 'hr5') rangeStr = `${Math.round(thr*minP/100)}+ bpm`;
+      else rangeStr = `${Math.round(thr*minP/100)} – ${Math.round(thr*maxP/100)} bpm`;
     }
     return `<div class="zone-row">
-      <div class="zone-badge ${z.cls}">${z.label}</div>
+      <div style="display:flex;flex-direction:column;min-width:200px;">
+        <div class="zone-badge ${z.cls}">${z.label}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;padding-left:2px;" id="zpct-display-${z.key}">${effectiveDesc} of Threshold HR</div>
+      </div>
       <div class="zone-range" id="zrange-${z.key}">${rangeStr}</div>
-      <button class="zone-override" onclick="overrideZone('${z.key}','hr')">Override</button>
+      <button class="zone-override" onclick="overridePct('${z.key}','hr')" title="Change % ranges">% ranges</button>
+      <button class="zone-override" onclick="overrideZone('${z.key}','hr')" title="Override bpm values">bpm override</button>
     </div>`;
   }).join('');
 
@@ -453,6 +480,35 @@ function saveMetric(key, unit) {
   const val = parseFloat(input.value) || 0;
   athleteData[key] = val;
   // Re-render to update zones if FTP or threshold_hr changed
+  saveToStorage();
+  renderPage();
+}
+
+function overridePct(zoneKey, type) {
+  const unit = type === 'power' ? '% of FTP' : '% of Threshold HR';
+  const displayEl = document.getElementById(`zpct-display-${zoneKey}`);
+  const current = displayEl ? displayEl.textContent.replace(` of ${type==='power'?'FTP':'Threshold HR'}`,'').trim() : '';
+  displayEl.innerHTML = `<div class="zone-input-wrap">
+    <input class="zone-input" id="zpctinput-${zoneKey}" type="text" value="${current}" placeholder="e.g. 87–93%" style="width:80px;"/>
+    <button class="zone-override" onclick="savePctOverride('${zoneKey}','${type}')">✓</button>
+    <button class="zone-override" onclick="clearPctOverride('${zoneKey}','${type}')">Reset</button>
+  </div>`;
+  document.getElementById(`zpctinput-${zoneKey}`)?.focus();
+}
+
+function savePctOverride(zoneKey, type) {
+  const input = document.getElementById(`zpctinput-${zoneKey}`);
+  if (!input) return;
+  const val = input.value.trim();
+  if (!athleteData.zone_overrides) athleteData.zone_overrides = {};
+  if (val) athleteData.zone_overrides[`${zoneKey}_pct`] = val;
+  saveToStorage();
+  renderPage();
+}
+
+function clearPctOverride(zoneKey, type) {
+  if (!athleteData.zone_overrides) return;
+  delete athleteData.zone_overrides[`${zoneKey}_pct`];
   saveToStorage();
   renderPage();
 }
