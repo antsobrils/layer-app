@@ -163,7 +163,8 @@
 
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">Add timeline event</div>
+    <div class="modal-title" id="modal-title">Add timeline event</div>
+    <input type="hidden" id="edit-event-id"/>
     <div class="modal-field">
       <label class="modal-label">Event type</label>
       <select class="modal-select" id="event-type">
@@ -198,7 +199,8 @@
     </div>
     <div class="modal-btns">
       <button class="modal-cancel" onclick="closeModal()">Cancel</button>
-      <button class="modal-save" onclick="saveEvent()">Add to timeline</button>
+      <button class="modal-delete" id="modal-delete-btn" style="display:none;background:#2e1515;color:#f07070;border:1px solid #E24B4A;border-radius:10px;padding:12px 16px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;" onclick="deleteEvent()">Delete</button>
+      <button class="modal-save" onclick="saveEvent()">Save</button>
     </div>
   </div>
 </div>
@@ -271,7 +273,13 @@ async function loadChart(){
   const streams=Object.fromEntries(scaleQs.map(q=>[q.category,sortedDates.map(d=>dateMap[d][q.category]??null)]));
   const togglesHtml=scaleQs.map(q=>{const c=STREAM_COLORS[q.category]||{};const off=!activeStreams.has(q.category)?'off':'';return `<button class="stog ${off}" id="stog-${q.category}" onclick="toggleStream('${q.category}')"><div class="sdot" style="background:${c.line}"></div>${q.category.charAt(0).toUpperCase()+q.category.slice(1)}</button>`;}).join('');
   const winLabel={'1m':'1 month','3m':'3 months','6m':'6 months','12m':'12 months'}[currentWindow];
-  const eventCards=events.length>0?events.map(e=>`<div class="event-card ${e.type}"><div class="ec-type">${e.type.replace('_',' ')}</div><div class="ec-title">${e.title}</div><div class="ec-date">${new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>${e.priority?`<span class="ec-tag">${e.priority}-race</span>`:''}</div>`).join(''):'<div style="font-size:13px;color:var(--text3);font-style:italic;">No events yet. Add a race or event to annotate the timeline.</div>';
+  const eventCards=events.length>0?events.map(e=>`
+    <div class="event-card ${e.type}" style="cursor:pointer;" onclick="editEvent('${e.id}','${e.type}','${e.title.replace(/'/g,"\\'")}','${e.date}','${e.priority||''}','${(e.notes||'').replace(/'/g,"\\'")}')">
+      <div class="ec-type">${e.type.replace('_',' ')}</div>
+      <div class="ec-title">${e.title}</div>
+      <div class="ec-date">${new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+      ${e.priority?`<span class="ec-tag">${e.priority}-race</span>`:''}
+    </div>`).join(''):'<div style="font-size:13px;color:var(--text3);font-style:italic;">No events yet. Add a race or event to annotate the timeline.</div>';
 
   panel.innerHTML=`
     <div class="chart-header">
@@ -309,14 +317,20 @@ async function loadChart(){
     if(!canvas)return;
     if(chartInstance){chartInstance.destroy();chartInstance=null;}
 
-    // Build annotation lines for events that fall within the chart date range
+    // Build annotation lines for events — match by closest date in range
     const annotations={};
     events.forEach((e,i)=>{
-      const evtLabel=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-      const xIdx=labels.indexOf(evtLabel);
-      if(xIdx===-1)return; // event outside visible range
+      // Find closest label index by comparing date strings
+      const evtDate=e.date; // YYYY-MM-DD
+      let xIdx=-1;
+      let minDiff=Infinity;
+      sortedDates.forEach((d,idx)=>{
+        const diff=Math.abs(new Date(d)-new Date(evtDate));
+        if(diff<minDiff){minDiff=diff;xIdx=idx;}
+      });
+      if(xIdx===-1||minDiff>7*24*60*60*1000)return; // skip if >7 days from any data point
       const color=EVENT_COLORS[e.type]||'#888';
-      annotations[`event${i}`]={
+      annotations[`event_${i}_${e.id}`]={
         type:'line',
         xMin:xIdx,
         xMax:xIdx,
@@ -325,14 +339,14 @@ async function loadChart(){
         borderDash:[4,3],
         label:{
           display:true,
-          content:e.title.length>12?e.title.slice(0,12)+'…':e.title,
+          content:e.title.length>14?e.title.slice(0,14)+'…':e.title,
           position:'start',
           backgroundColor:color,
           color:'#fff',
           font:{size:9,family:'DM Sans',weight:'600'},
           padding:{x:5,y:3},
           borderRadius:4,
-          yAdjust:-8,
+          yAdjust: -8 - (i % 3)*18, // stagger labels vertically so they don't overlap
         }
       };
     });
@@ -377,32 +391,70 @@ function hideChart(){
 }
 
 function openModal(){
-  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('modal-title').textContent='Add timeline event';
+  document.getElementById('edit-event-id').value='';
+  document.getElementById('modal-delete-btn').style.display='none';
+  document.getElementById('event-type').value='race';
   document.getElementById('event-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('event-title').value='';
+  document.getElementById('event-priority').value='';
   document.getElementById('event-notes').value='';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function editEvent(id,type,title,date,priority,notes){
+  document.getElementById('modal-title').textContent='Edit event';
+  document.getElementById('edit-event-id').value=id;
+  document.getElementById('event-type').value=type;
+  document.getElementById('event-title').value=title;
+  document.getElementById('event-date').value=date;
+  document.getElementById('event-priority').value=priority||'';
+  document.getElementById('event-notes').value=notes||'';
+  document.getElementById('modal-delete-btn').style.display='block';
+  document.getElementById('modal-overlay').classList.add('open');
 }
 
 function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
 
 async function saveEvent(){
   if(!currentAthlete)return;
+  const id=document.getElementById('edit-event-id').value;
   const type=document.getElementById('event-type').value;
   const title=document.getElementById('event-title').value.trim();
   const date=document.getElementById('event-date').value;
   const priority=document.getElementById('event-priority').value||null;
   const notes=document.getElementById('event-notes').value.trim()||null;
   if(!title||!date){alert('Please fill in a title and date.');return;}
-  const res=await fetch(`${SUPABASE_URL}/rest/v1/calendar_events`,{
-    method:'POST',
-    headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
-    body:JSON.stringify({athlete_id:currentAthlete.id,type,title,date,priority,notes})
-  });
-  if(!res.ok){
-    const err=await res.text();
-    alert('Could not save event: '+err);
-    return;
+  
+  let res;
+  if(id){
+    // Update existing
+    res=await fetch(`${SUPABASE_URL}/rest/v1/calendar_events?id=eq.${id}`,{
+      method:'PATCH',
+      headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({type,title,date,priority,notes})
+    });
+  } else {
+    // Insert new
+    res=await fetch(`${SUPABASE_URL}/rest/v1/calendar_events`,{
+      method:'POST',
+      headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({athlete_id:currentAthlete.id,type,title,date,priority,notes})
+    });
   }
+  if(!res.ok){const err=await res.text();alert('Could not save event: '+err);return;}
+  closeModal();
+  loadChart();
+}
+
+async function deleteEvent(){
+  const id=document.getElementById('edit-event-id').value;
+  if(!id||!confirm('Delete this event?'))return;
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/calendar_events?id=eq.${id}`,{
+    method:'DELETE',
+    headers:{...headers,'Prefer':'return=minimal'}
+  });
+  if(!res.ok){const err=await res.text();alert('Could not delete: '+err);return;}
   closeModal();
   loadChart();
 }
