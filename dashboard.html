@@ -367,6 +367,8 @@ if (_p.get('coach')) {
   document.getElementById('nav-roster').href   = `dashboard.html?coach=${COACH_ID}`;
   document.getElementById('nav-messages').href = `messages.html?coach=${COACH_ID}`;
   document.getElementById('nav-macro').href    = `macro.html?coach=${COACH_ID}`;
+  document.getElementById('nav-athletes').href = `athletes.html?coach=${COACH_ID}`;
+}
 }
 
 const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
