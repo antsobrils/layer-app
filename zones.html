@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer — Zones & Power Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f0f0f;--bg2:#141414;--bg3:#1e1e1e;--bg4:#262626;
+    --card:#181818;--border:#242424;--border2:#333;
+    --text:#f0ede6;--text2:#b0ada6;--text3:#707068;
+    --green:#1D9E75;--green-bg:#0d2a1c;--green-text:#4dc99a;
+    --red:#E24B4A;--red-bg:#2e1515;--red-text:#f07070;
+    --amber:#d4890a;--amber-bg:#2a1e08;--amber-text:#f0a830;
+    --blue:#7B8FF0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;display:flex;}
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:28px 18px;display:flex;flex-direction:column;flex-shrink:0;position:fixed;height:100vh;}
+  .logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:36px;}
+  .logo span{color:var(--green);}
+  .nav-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-left:10px;}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--text3);margin-bottom:1px;cursor:pointer;text-decoration:none;transition:all .15s;}
+  .nav-item:hover{color:var(--text2);background:var(--bg3);}
+  .nav-item.active{background:var(--bg3);color:var(--text);}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);flex-shrink:0;}
+  .nav-item.active .nav-dot{background:var(--green);}
+  .nav-section{margin-bottom:24px;}
+  .sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:16px;}
+  .coach-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;}
+  .coach-av-wrap{position:relative;flex-shrink:0;}
+  .coach-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),#0d6e50);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+  .online-dot{position:absolute;bottom:1px;right:1px;width:8px;height:8px;background:var(--green);border-radius:50%;border:2px solid var(--bg2);}
+  .coach-name{font-size:13px;color:var(--text);font-weight:500;}
+  .coach-role{font-size:11px;color:var(--text3);}
+
+  .main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 32px 18px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;}
+  .page-title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);}
+  .page-sub{font-size:12px;color:var(--text3);margin-top:3px;}
+  .topbar-right{display:flex;gap:8px;align-items:center;}
+
+  .content{padding:28px 32px;max-width:1100px;}
+
+  /* athlete selector */
+  .athlete-select-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+  .athlete-select-label{font-size:12px;color:var(--text3);font-weight:500;}
+  .athlete-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+  .athlete-select:focus{border-color:var(--green);}
+
+  /* section headers */
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .section-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
+  .section-action{font-size:12px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .section-action:hover{color:var(--text2);}
+
+  /* key metrics */
+  .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px;}
+  .metric-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;cursor:pointer;transition:border-color .15s;}
+  .metric-card:hover{border-color:var(--border2);}
+  .metric-card.editing{border-color:var(--green);}
+  .mc-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .mc-value{font-size:28px;font-weight:700;color:var(--text);font-family:'DM Serif Display',serif;display:flex;align-items:baseline;gap:4px;}
+  .mc-unit{font-size:13px;font-weight:400;color:var(--text3);font-family:'DM Sans',sans-serif;}
+  .mc-edit-btn{position:absolute;top:12px;right:12px;font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .mc-edit-btn:hover{color:var(--text2);}
+  .mc-input{font-size:24px;font-weight:700;color:var(--text);font-family:'DM Serif Display',serif;background:transparent;border:none;outline:none;width:100%;border-bottom:2px solid var(--green);padding-bottom:2px;}
+
+  /* zones */
+  .zones-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+  .zone-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .zone-panel-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .zone-panel-title{font-size:14px;font-weight:600;color:var(--text);}
+  .zone-basis{font-size:11px;color:var(--text3);}
+  .zone-row{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);}
+  .zone-row:last-child{border-bottom:none;}
+  .zone-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap;min-width:130px;text-align:center;}
+  .zone-range{flex:1;font-size:13px;color:var(--text2);text-align:right;}
+  .zone-override{font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:2px 7px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+  .zone-override:hover{color:var(--text2);}
+  .zone-input-wrap{display:flex;align-items:center;gap:6px;}
+  .zone-input{width:60px;background:var(--bg2);border:1px solid var(--green);border-radius:4px;padding:3px 6px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;text-align:center;}
+
+  /* power zones colors */
+  .z-z6{background:#111;color:#fff;border:1px solid #333;}
+  .z-z5{background:#0a1628;color:#60a0ff;border:1px solid #1a3a6a;}
+  .z-z4{background:#1a0a28;color:#c060ff;border:1px solid #4a1a6a;}
+  .z-ss{background:#1a2800;color:#90d020;border:1px solid #3a5a00;}
+  .z-z3{background:#281a00;color:#ffa030;border:1px solid #5a3a00;}
+  .z-z2{background:#0a2010;color:#40c060;border:1px solid #1a4a20;}
+  .z-z1{background:#1a1a2a;color:#8090c0;border:1px solid #2a2a4a;}
+  /* HR zones colors */
+  .z-hr5{background:#280a0a;color:#ff5050;border:1px solid #6a1a1a;}
+  .z-hr4{background:#1a0a28;color:#c060ff;border:1px solid #4a1a6a;}
+  .z-hr3{background:#281a00;color:#ffa030;border:1px solid #5a3a00;}
+  .z-hr2{background:#0a2010;color:#40c060;border:1px solid #1a4a20;}
+  .z-hr1{background:#1a1a2a;color:#8090c0;border:1px solid #2a2a4a;}
+
+  /* power profile */
+  .profile-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:28px;}
+  .profile-card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .window-btns{display:flex;gap:5px;}
+  .win-btn{font-size:11px;padding:4px 12px;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .win-btn.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+
+  .profile-table{width:100%;border-collapse:collapse;}
+  .profile-table th{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);}
+  .profile-table th:not(:first-child){text-align:right;}
+  .profile-table td{padding:10px 16px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border);}
+  .profile-table td:not(:first-child){text-align:right;}
+  .profile-table tr:last-child td{border-bottom:none;}
+  .profile-table tr:hover td{background:var(--bg3);}
+  .interval-label{font-weight:600;color:var(--text);}
+  .power-val{font-weight:600;color:var(--text);font-size:14px;}
+  .power-val.empty{color:var(--text3);font-weight:400;}
+  .wkg-val{color:var(--text3);font-size:12px;}
+  .trend-val{font-size:12px;}
+  .trend-val.up{color:var(--green-text);}
+  .trend-val.down{color:var(--red-text);}
+  .trend-val.flat{color:var(--text3);}
+  .edit-power-btn{font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:2px 7px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .edit-power-btn:hover{color:var(--text2);}
+  .power-input{width:70px;background:var(--bg2);border:1px solid var(--green);border-radius:4px;padding:3px 6px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;text-align:center;}
+
+  /* file upload */
+  .upload-card{background:var(--card);border:1px dashed var(--border2);border-radius:12px;padding:24px;text-align:center;margin-bottom:28px;transition:border-color .15s;cursor:pointer;}
+  .upload-card:hover{border-color:var(--green);}
+  .upload-card.dragover{border-color:var(--green);background:var(--green-bg);}
+  .upload-icon{font-size:28px;margin-bottom:8px;}
+  .upload-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+  .upload-sub{font-size:12px;color:var(--text3);line-height:1.6;}
+  .upload-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:7px 16px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:12px;transition:all .15s;display:inline-block;}
+  .upload-btn:hover{background:var(--bg4);color:var(--text);}
+
+  .loading-state{padding:60px;text-align:center;font-size:13px;color:var(--text3);}
+  .spinner{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+  .empty-athlete{padding:60px 0;text-align:center;}
+  .empty-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text2);margin-bottom:8px;}
+  .empty-sub{font-size:13px;color:var(--text3);}
+
+  .save-row{display:flex;justify-content:flex-end;margin-bottom:8px;}
+  .save-btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
+  .save-btn:hover{background:#18875f;}
+
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">Layer<span>.</span></div>
+  <div class="nav-section">
+    <div class="nav-label">Coach</div>
+    <a class="nav-item" id="nav-roster" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
+    <a class="nav-item" id="nav-messages" href="messages.html"><div class="nav-dot"></div>Messages</a>
+    <a class="nav-item" id="nav-macro" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
+    <a class="nav-item" id="nav-athletes" href="athletes.html"><div class="nav-dot"></div>Athlete profiles</a>
+    <a class="nav-item active" id="nav-zones" href="zones.html"><div class="nav-dot"></div>Zones & power</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Settings</div>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Question builder</a>
+    <a class="nav-item" href="#"><div class="nav-dot"></div>Integrations</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="coach-chip">
+      <div class="coach-av-wrap">
+        <div class="coach-av" id="coach-av">?</div>
+        <div class="online-dot"></div>
+      </div>
+      <div>
+        <div class="coach-name" id="coach-name">Loading…</div>
+        <div class="coach-role">Layer · Coach</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Zones & Power Profile</div>
+      <div class="page-sub" id="page-sub">Select an athlete to view and edit their zones</div>
+    </div>
+    <div class="topbar-right">
+      <button class="section-action" onclick="saveAll()" id="save-btn" style="display:none;background:var(--green);color:#fff;border-color:var(--green);">Save changes</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="athlete-select-wrap">
+      <span class="athlete-select-label">Athlete</span>
+      <select class="athlete-select" id="athlete-select" onchange="loadAthlete(this.value)">
+        <option value="">— Select athlete —</option>
+      </select>
+    </div>
+
+    <div id="main-content">
+      <div class="empty-athlete">
+        <div class="empty-title">Select an athlete</div>
+        <div class="empty-sub">Choose an athlete above to view and edit their training zones and power profile.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-input" accept=".csv,.fit,.json" style="display:none" onchange="handleFileUpload(event)"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://eaqlyzvggjewavyxpbwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
+const _p = new URLSearchParams(window.location.search);
+const COACH_ID = _p.get('coach') || '051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
+const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+
+if (_p.get('coach')) {
+  document.getElementById('nav-roster').href   = `dashboard.html?coach=${COACH_ID}`;
+  document.getElementById('nav-messages').href = `messages.html?coach=${COACH_ID}`;
+  document.getElementById('nav-macro').href    = `macro.html?coach=${COACH_ID}`;
+  document.getElementById('nav-athletes').href = `athletes.html?coach=${COACH_ID}`;
+  document.getElementById('nav-zones').href    = `zones.html?coach=${COACH_ID}`;
+}
+
+async function api(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers });
+  return res.json();
+}
+
+function getInitials(name) { return name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+
+const INTERVALS = [
+  { key: 'p5s',   label: '5 sec' },
+  { key: 'p10s',  label: '10 sec' },
+  { key: 'p30s',  label: '30 sec' },
+  { key: 'p1m',   label: '1 min' },
+  { key: 'p2m',   label: '2 min' },
+  { key: 'p5m',   label: '5 min' },
+  { key: 'p10m',  label: '10 min' },
+  { key: 'p20m',  label: '20 min' },
+  { key: 'p60m',  label: '60 min' },
+];
+
+// Power zone definitions as % of FTP
+const POWER_ZONES = [
+  { key:'z6', label:'Zone 6 – Neuromuscular', cls:'z-z6', minPct:null, maxPct:null, fixedMin:null }, // >150% FTP
+  { key:'z5', label:'Zone 5 – VO2',           cls:'z-z5', minPct:106,  maxPct:150 },
+  { key:'z4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-z4', minPct:91, maxPct:105 },
+  { key:'ss', label:'Sweet Spot',              cls:'z-ss', minPct:84,  maxPct:97  },
+  { key:'z3', label:'Zone 3 – Tempo',          cls:'z-z3', minPct:76,  maxPct:90  },
+  { key:'z2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-z2', minPct:56, maxPct:75 },
+  { key:'z1', label:'Zone 1 – Active Recovery', cls:'z-z1', minPct:0,  maxPct:55  },
+];
+
+// HR zone definitions as % of Threshold HR
+const HR_ZONES = [
+  { key:'hr5', label:'Zone 5 – VO2',           cls:'z-hr5', minPct:106, maxPct:null },
+  { key:'hr4', label:'Zone 4 – Lactate Threshold (LT2)', cls:'z-hr4', minPct:94, maxPct:105 },
+  { key:'hr3', label:'Zone 3 – Tempo',          cls:'z-hr3', minPct:84, maxPct:93  },
+  { key:'hr2', label:'Zone 2 – Aerobic Endurance (LT1)', cls:'z-hr2', minPct:69, maxPct:83 },
+  { key:'hr1', label:'Zone 1 – Active Recovery', cls:'z-hr1', minPct:0,  maxPct:68  },
+];
+
+let currentAthlete = null;
+let athleteData = {}; // { ftp, cp, wprime, vo2max, peak_power, threshold_hr, weight, power_profile:{}, zone_overrides:{} }
+let activeWindow = '30d';
+let profileChart = null;
+
+async function init() {
+  const coaches = await api(`coaches?id=eq.${COACH_ID}`);
+  if (coaches&&coaches[0]) {
+    document.getElementById('coach-name').textContent = coaches[0].name;
+    document.getElementById('coach-av').textContent = getInitials(coaches[0].name);
+  }
+  const athletes = await api(`athletes?coach_id=eq.${COACH_ID}&order=name.asc`);
+  const sel = document.getElementById('athlete-select');
+  athletes.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = a.name;
+    sel.appendChild(opt);
+  });
+  // Auto-select if URL param
+  const urlAthlete = _p.get('athlete');
+  if (urlAthlete) { sel.value = urlAthlete; loadAthlete(urlAthlete); }
+}
+
+async function loadAthlete(athleteId) {
+  if (!athleteId) { document.getElementById('main-content').innerHTML = `<div class="empty-athlete"><div class="empty-title">Select an athlete</div><div class="empty-sub">Choose an athlete above to view and edit their training zones.</div></div>`; document.getElementById('save-btn').style.display='none'; return; }
+  currentAthlete = athleteId;
+  document.getElementById('main-content').innerHTML = `<div class="loading-state"><div class="spinner"></div>Loading…</div>`;
+
+  // Load from training_load table (reuse or create athlete_zones table)
+  // For now store in localStorage keyed by athlete
+  const stored = localStorage.getItem(`zones_${athleteId}`);
+  athleteData = stored ? JSON.parse(stored) : { ftp:0, cp:0, wprime:0, vo2max:0, peak_power:0, threshold_hr:0, weight:70, power_profile:{}, zone_overrides:{} };
+
+  document.getElementById('save-btn').style.display = 'block';
+  renderPage();
+}
+
+function renderPage() {
+  const d = athleteData;
+  const ftp = d.ftp || 0;
+  const thr = d.threshold_hr || 0;
+
+  // Build metrics HTML
+  const metrics = [
+    { key:'ftp',          label:'FTP',            value: d.ftp||'',          unit:'w' },
+    { key:'cp',           label:'Critical Power',  value: d.cp||'',           unit:'w' },
+    { key:'wprime',       label:'W\'',             value: d.wprime||'',       unit:'kJ' },
+    { key:'vo2max',       label:'VO2Max',           value: d.vo2max||'',       unit:'ml/kg/min' },
+    { key:'peak_power',   label:'Peak Power',      value: d.peak_power||'',   unit:'w' },
+    { key:'threshold_hr', label:'Threshold HR',    value: d.threshold_hr||'', unit:'bpm' },
+  ];
+
+  const metricsHtml = metrics.map(m => `
+    <div class="metric-card" id="mc-${m.key}">
+      <div class="mc-label">${m.label}</div>
+      <div class="mc-value" id="mc-val-${m.key}">
+        <span id="mc-display-${m.key}">${m.value||'—'}</span>
+        <span class="mc-unit">${m.value?m.unit:''}</span>
+      </div>
+      <button class="mc-edit-btn" onclick="editMetric('${m.key}','${m.unit}')">Edit</button>
+    </div>`).join('');
+
+  // Power zones
+  const powerZonesHtml = POWER_ZONES.map(z => {
+    const override = (d.zone_overrides||{})[z.key];
+    let rangeStr = '—';
+    if (override) {
+      rangeStr = override;
+    } else if (ftp > 0) {
+      if (z.key === 'z6') rangeStr = `${Math.round(ftp*1.5)+1}+ W`;
+      else rangeStr = `${Math.round(ftp*z.minPct/100)} – ${Math.round(ftp*z.maxPct/100)} W`;
+    }
+    return `<div class="zone-row">
+      <div class="zone-badge ${z.cls}">${z.label}</div>
+      <div class="zone-range" id="zrange-${z.key}">${rangeStr}</div>
+      <button class="zone-override" onclick="overrideZone('${z.key}','power')">Override</button>
+    </div>`;
+  }).join('');
+
+  // HR zones
+  const hrZonesHtml = HR_ZONES.map(z => {
+    const override = (d.zone_overrides||{})[z.key];
+    let rangeStr = '—';
+    if (override) {
+      rangeStr = override;
+    } else if (thr > 0) {
+      if (z.key === 'hr5') rangeStr = `${Math.round(thr*z.minPct/100)}+ bpm`;
+      else rangeStr = `${Math.round(thr*z.minPct/100)} – ${Math.round(thr*z.maxPct/100)} bpm`;
+    }
+    return `<div class="zone-row">
+      <div class="zone-badge ${z.cls}">${z.label}</div>
+      <div class="zone-range" id="zrange-${z.key}">${rangeStr}</div>
+      <button class="zone-override" onclick="overrideZone('${z.key}','hr')">Override</button>
+    </div>`;
+  }).join('');
+
+  // Power profile table
+  const profileRowsHtml = INTERVALS.map(iv => {
+    const val = (d.power_profile||{})[iv.key];
+    const wkg = val && d.weight ? (val/d.weight).toFixed(1) : null;
+    return `<tr>
+      <td class="interval-label">${iv.label}</td>
+      <td><span class="power-val ${val?'':'empty'}" id="pp-display-${iv.key}">${val ? val+'w' : '—'}</span></td>
+      <td class="wkg-val">${wkg ? wkg+' w/kg' : '—'}</td>
+      <td id="pp-trend-${iv.key}"><span class="trend-val flat">—</span></td>
+      <td><button class="edit-power-btn" onclick="editPower('${iv.key}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('main-content').innerHTML = `
+    <div style="animation:fadeUp .3s ease forwards">
+
+      <!-- Key metrics -->
+      <div class="section-header">
+        <div class="section-title">Key metrics</div>
+        <div style="font-size:11px;color:var(--text3)">Click Edit to update any value</div>
+      </div>
+      <div class="metrics-grid">${metricsHtml}</div>
+
+      <!-- Zones -->
+      <div class="section-header">
+        <div class="section-title">Training zones</div>
+        <div style="font-size:11px;color:var(--text3)">${ftp?`Based on FTP ${ftp}w`:'Set FTP above to auto-calculate'}</div>
+      </div>
+      <div class="zones-grid">
+        <div class="zone-panel">
+          <div class="zone-panel-header">
+            <div class="zone-panel-title">Power zones</div>
+            <div class="zone-basis">Based on FTP</div>
+          </div>
+          ${powerZonesHtml}
+        </div>
+        <div class="zone-panel">
+          <div class="zone-panel-header">
+            <div class="zone-panel-title">Heart rate zones</div>
+            <div class="zone-basis">Based on Threshold HR</div>
+          </div>
+          ${hrZonesHtml}
+        </div>
+      </div>
+
+      <!-- Power profile -->
+      <div class="section-header">
+        <div class="section-title">Power profile — all time best</div>
+        <div class="window-btns">
+          <button class="win-btn ${activeWindow==='30d'?'active':''}" onclick="setWindow('30d')">30d trend</button>
+          <button class="win-btn ${activeWindow==='90d'?'active':''}" onclick="setWindow('90d')">90d trend</button>
+          <button class="win-btn ${activeWindow==='12m'?'active':''}" onclick="setWindow('12m')">12m trend</button>
+        </div>
+      </div>
+      <div class="profile-card">
+        <table class="profile-table">
+          <thead><tr><th>Interval</th><th>All-time best</th><th>W/kg</th><th>Trend (${activeWindow})</th><th></th></tr></thead>
+          <tbody>${profileRowsHtml}</tbody>
+        </table>
+      </div>
+
+      <!-- File upload -->
+      <div class="section-header">
+        <div class="section-title">Import from Training Peaks</div>
+      </div>
+      <div class="upload-card" onclick="document.getElementById('file-input').click()"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="event.preventDefault();this.classList.remove('dragover');handleFileDrop(event)">
+        <div class="upload-icon">📁</div>
+        <div class="upload-title">Upload a Training Peaks export</div>
+        <div class="upload-sub">Drop a CSV or JSON file here to import power bests, FTP, and zone data.<br>Supports Training Peaks CSV exports.</div>
+        <div class="upload-btn">Choose file</div>
+      </div>
+
+    </div>`;
+}
+
+function editMetric(key, unit) {
+  const displayEl = document.getElementById(`mc-display-${key}`);
+  const card = document.getElementById(`mc-${key}`);
+  const current = athleteData[key] || '';
+  displayEl.outerHTML = `<input class="mc-input" id="mc-input-${key}" type="number" value="${current}" placeholder="0" onblur="saveMetric('${key}','${unit}')" onkeydown="if(event.key==='Enter')saveMetric('${key}','${unit}')"/>`;
+  card.classList.add('editing');
+  setTimeout(()=>document.getElementById(`mc-input-${key}`)?.focus(), 50);
+}
+
+function saveMetric(key, unit) {
+  const input = document.getElementById(`mc-input-${key}`);
+  if (!input) return;
+  const val = parseFloat(input.value) || 0;
+  athleteData[key] = val;
+  // Re-render to update zones if FTP or threshold_hr changed
+  saveToStorage();
+  renderPage();
+}
+
+function overrideZone(zoneKey, type) {
+  const rangeEl = document.getElementById(`zrange-${zoneKey}`);
+  const current = rangeEl.textContent.trim();
+  rangeEl.innerHTML = `<div class="zone-input-wrap">
+    <input class="zone-input" id="zinput-${zoneKey}" type="text" value="${current==='—'?'':current}" placeholder="e.g. 200-250 W"/>
+    <button class="zone-override" onclick="saveZoneOverride('${zoneKey}')">✓</button>
+  </div>`;
+  document.getElementById(`zinput-${zoneKey}`)?.focus();
+}
+
+function saveZoneOverride(zoneKey) {
+  const input = document.getElementById(`zinput-${zoneKey}`);
+  if (!input) return;
+  const val = input.value.trim();
+  if (!athleteData.zone_overrides) athleteData.zone_overrides = {};
+  if (val) athleteData.zone_overrides[zoneKey] = val;
+  else delete athleteData.zone_overrides[zoneKey];
+  saveToStorage();
+  renderPage();
+}
+
+function editPower(key) {
+  const displayEl = document.getElementById(`pp-display-${key}`);
+  const current = (athleteData.power_profile||{})[key] || '';
+  displayEl.outerHTML = `<input class="power-input" id="pp-input-${key}" type="number" value="${current}" placeholder="W" onblur="savePower('${key}')" onkeydown="if(event.key==='Enter')savePower('${key}')"/>`;
+  setTimeout(()=>document.getElementById(`pp-input-${key}`)?.focus(), 50);
+}
+
+function savePower(key) {
+  const input = document.getElementById(`pp-input-${key}`);
+  if (!input) return;
+  const val = parseInt(input.value) || 0;
+  if (!athleteData.power_profile) athleteData.power_profile = {};
+  if (val) athleteData.power_profile[key] = val;
+  else delete athleteData.power_profile[key];
+  saveToStorage();
+  renderPage();
+}
+
+function setWindow(w) {
+  activeWindow = w;
+  renderPage();
+}
+
+function saveToStorage() {
+  if (currentAthlete) localStorage.setItem(`zones_${currentAthlete}`, JSON.stringify(athleteData));
+}
+
+function saveAll() {
+  saveToStorage();
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Saved!';
+  setTimeout(()=>btn.textContent='Save changes', 2000);
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  parseFile(file);
+}
+
+function handleFileDrop(event) {
+  const file = event.dataTransfer.files[0];
+  if (!file) return;
+  parseFile(file);
+}
+
+function parseFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target.result;
+    let imported = 0;
+    // Try CSV parsing — look for common Training Peaks column names
+    const lines = content.split('\n');
+    const header = lines[0]?.split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+    if (header) {
+      lines.slice(1).forEach(line => {
+        if (!line.trim()) return;
+        const cols = line.split(',').map(c=>c.trim().replace(/"/g,''));
+        const row = {};
+        header.forEach((h,i) => row[h] = cols[i]);
+        // Map common Training Peaks fields
+        if (row['ftp'] && parseFloat(row['ftp'])) { athleteData.ftp = parseFloat(row['ftp']); imported++; }
+        if (row['critical power'] && parseFloat(row['critical power'])) { athleteData.cp = parseFloat(row['critical power']); imported++; }
+        if (row['5s power'] && parseInt(row['5s power'])) { if(!athleteData.power_profile) athleteData.power_profile={}; athleteData.power_profile.p5s = parseInt(row['5s power']); imported++; }
+        if (row['1min power'] && parseInt(row['1min power'])) { if(!athleteData.power_profile) athleteData.power_profile={}; athleteData.power_profile.p1m = parseInt(row['1min power']); imported++; }
+        if (row['5min power'] && parseInt(row['5min power'])) { if(!athleteData.power_profile) athleteData.power_profile={}; athleteData.power_profile.p5m = parseInt(row['5min power']); imported++; }
+        if (row['20min power'] && parseInt(row['20min power'])) { if(!athleteData.power_profile) athleteData.power_profile={}; athleteData.power_profile.p20m = parseInt(row['20min power']); imported++; }
+      });
+    }
+    saveToStorage();
+    renderPage();
+    alert(imported > 0 ? `Imported ${imported} values from file.` : 'File parsed but no recognizable data found. Check the format.');
+  };
+  reader.readAsText(file);
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
