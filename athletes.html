@@ -292,7 +292,8 @@ async function loadRoster() {
 
   // Fetch today's submissions to show flags
   const todayStr = today();
-  const subRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?coach_id=eq.${COACH_ID}&submitted_at=gte.${todayStr}&select=athlete_id,flagged`, { headers });
+  const athleteIds = athletes.map(a => a.id).join(',');
+  const subRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=in.(${athleteIds})&submitted_at=gte.${todayStr}T00:00:00&select=athlete_id,flagged`, { headers });
   const subs = await subRes.json();
   const subMap = {};
   subs.forEach(s => subMap[s.athlete_id] = s);
@@ -333,7 +334,7 @@ async function selectAthlete(athleteId) {
 
   // Fetch today's check-in
   const todayStr = today();
-  const ciRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=eq.${athleteId}&submitted_at=gte.${todayStr}&select=*&order=submitted_at.desc&limit=1`, { headers });
+  const ciRes = await fetch(`${SUPABASE_URL}/rest/v1/check_ins?athlete_id=eq.${athleteId}&submitted_at=gte.${todayStr}T00:00:00&select=*&order=submitted_at.desc&limit=1`, { headers });
   const cis = await ciRes.json();
   const ci = cis[0] || null;
 
