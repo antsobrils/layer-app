@@ -271,6 +271,7 @@ async function loadChart(){
 
   // Fetch FTP/CP/W' history from Supabase
   const metricsHistory=await api(`athlete_metrics_history?athlete_id=eq.${currentAthlete.id}&date=gte.${startStr}&order=date.asc`)||[];
+  console.log('Metrics history fetched:', metricsHistory, 'startStr:', startStr);
   const metricMap={ftp:{},cp:{},wprime:{}};
   metricsHistory.forEach(r=>{if(metricMap[r.metric])metricMap[r.metric][r.date]=r.value;});
 
@@ -380,6 +381,12 @@ async function loadChart(){
       };
     });
 
+    // Compute right axis range from actual metric values
+    const rightVals=[...ftpLine,...cpLine,...wprimeLine].filter(v=>v!=null);
+    const rightMin=rightVals.length?Math.max(0,Math.min(...rightVals)-20):0;
+    const rightMax=rightVals.length?Math.max(...rightVals)+20:400;
+    console.log('Right axis vals:', rightVals, 'min:', rightMin, 'max:', rightMax);
+
     const wellnessDatasets=scaleQs.map(q=>{
       const c=STREAM_COLORS[q.category]||{line:'#888',fill:'rgba(136,136,136,0.05)'};
       return{label:q.category,yAxisID:'yLeft',data:streams[q.category],borderColor:c.line,backgroundColor:c.fill,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.4,fill:true,hidden:!activeStreams.has(q.category)};
@@ -416,7 +423,7 @@ async function loadChart(){
         scales:{
           x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:10,maxRotation:0},border:{color:'#242424'}},
           yLeft:{type:'linear',position:'left',min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}},
-          yRight:{type:'linear',position:'right',grid:{drawOnChartArea:false},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},callback:v=>`${Math.round(v)}`},border:{color:'#242424'}}
+          yRight:{type:'linear',position:'right',min:rightMin,max:rightMax,grid:{drawOnChartArea:false},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},callback:v=>`${Math.round(v)}`},border:{color:'#242424'}}
         }
       }
     });
