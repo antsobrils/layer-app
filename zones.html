@@ -486,7 +486,73 @@ function renderPage() {
         <div class="upload-btn">Choose file</div>
       </div>
 
+      <!-- Historical log — subtle, tucked away -->
+      <div style="text-align:right;margin-top:8px;">
+        <span onclick="toggleHistoryLog()" style="font-size:11px;color:var(--text3);cursor:pointer;text-decoration:underline;text-underline-offset:3px;opacity:0.5;">log historical values</span>
+      </div>
+      <div id="history-log-panel" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-top:6px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:12px;font-weight:500;">Log a past FTP / CP / W' value</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Date</div>
+            <input type="date" id="hlog-date" style="background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;" value="${new Date().toISOString().split('T')[0]}"/>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">FTP (w)</div>
+            <input type="number" id="hlog-ftp" placeholder="—" style="width:70px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;"/>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">CP (w)</div>
+            <input type="number" id="hlog-cp" placeholder="—" style="width:70px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;"/>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">W' (kJ)</div>
+            <input type="number" id="hlog-wprime" placeholder="—" style="width:70px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;"/>
+          </div>
+          <button onclick="saveHistoricalLog()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 16px;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Save</button>
+        </div>
+        <div id="hlog-status" style="font-size:11px;color:var(--text3);margin-top:8px;min-height:16px;"></div>
+      </div>
+
     </div>`;
+}
+
+function toggleHistoryLog() {
+  const panel = document.getElementById('history-log-panel');
+  if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveHistoricalLog() {
+  if (!currentAthlete) return;
+  const date   = document.getElementById('hlog-date')?.value;
+  const ftp    = parseFloat(document.getElementById('hlog-ftp')?.value)   || null;
+  const cp     = parseFloat(document.getElementById('hlog-cp')?.value)    || null;
+  const wprime = parseFloat(document.getElementById('hlog-wprime')?.value) || null;
+  const status = document.getElementById('hlog-status');
+
+  if (!date) { if(status) status.textContent = 'Please select a date.'; return; }
+  if (!ftp && !cp && !wprime) { if(status) status.textContent = 'Enter at least one value.'; return; }
+
+  const entries = [];
+  if (ftp)    entries.push({ athlete_id: currentAthlete, date, metric: 'ftp',    value: ftp    });
+  if (cp)     entries.push({ athlete_id: currentAthlete, date, metric: 'cp',     value: cp     });
+  if (wprime) entries.push({ athlete_id: currentAthlete, date, metric: 'wprime', value: wprime });
+
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/athlete_metrics_history`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(entries)
+    });
+    if (status) status.textContent = `✓ Saved ${entries.length} value${entries.length>1?'s':''} for ${date}`;
+    // Clear inputs
+    document.getElementById('hlog-ftp').value = '';
+    document.getElementById('hlog-cp').value  = '';
+    document.getElementById('hlog-wprime').value = '';
+    setTimeout(() => { if(status) status.textContent = ''; }, 3000);
+  } catch(e) {
+    if (status) status.textContent = 'Error saving — please try again.';
+  }
 }
 
 function resetCalc(key) {
