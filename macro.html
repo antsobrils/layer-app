@@ -416,7 +416,7 @@ async function loadChart(){
         scales:{
           x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},maxTicksLimit:10,maxRotation:0},border:{color:'#242424'}},
           yLeft:{type:'linear',position:'left',min:0,max:6,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},stepSize:1,callback:v=>v===0||v===6?'':v},border:{color:'#242424'}},
-          yRight:{type:'linear',position:'right',min:0,grid:{drawOnChartArea:false},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},callback:v=>`${v}`},border:{color:'#242424'}}
+          yRight:{type:'linear',position:'right',grid:{drawOnChartArea:false},ticks:{color:'#505048',font:{size:10,family:'DM Sans'},callback:v=>`${Math.round(v)}`},border:{color:'#242424'}}
         }
       }
     });
