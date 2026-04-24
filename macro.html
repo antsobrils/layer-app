@@ -268,14 +268,22 @@ async function loadChart(){
     const q=scaleQs.find(q=>q.id===r.question_id);
     if(q)dateMap[r.date][q.category]=r.score;
   });
-  const sortedDates=Object.keys(dateMap).sort();
-  const labels=sortedDates.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
-  const streams=Object.fromEntries(scaleQs.map(q=>[q.category,sortedDates.map(d=>dateMap[d][q.category]??null)]));
 
   // Fetch FTP/CP/W' history from Supabase
   const metricsHistory=await api(`athlete_metrics_history?athlete_id=eq.${currentAthlete.id}&date=gte.${startStr}&order=date.asc`)||[];
   const metricMap={ftp:{},cp:{},wprime:{}};
   metricsHistory.forEach(r=>{if(metricMap[r.metric])metricMap[r.metric][r.date]=r.value;});
+
+  // Build unified sorted date range from both check-ins AND metric history
+  const allDates = new Set([
+    ...Object.keys(dateMap),
+    ...Object.keys(metricMap.ftp),
+    ...Object.keys(metricMap.cp),
+    ...Object.keys(metricMap.wprime),
+  ]);
+  const sortedDates = Array.from(allDates).sort();
+  const labels=sortedDates.map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  const streams=Object.fromEntries(scaleQs.map(q=>[q.category,sortedDates.map(d=>dateMap[d]?.[q.category]??null)]));
 
   // Forward-fill metrics so they show as continuous lines
   function forwardFill(metricObj, dates) {

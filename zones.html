@@ -695,8 +695,7 @@ function calculateCP() {
       const long  = candidates[j];
       const cp = (short.p * short.t - long.p * long.t) / (short.t - long.t);
       const wprime = (short.p - cp) * short.t;
-      if (cp > 0 && wprime > 0) results.push({ cp, wprime });
-    }
+      if (cp > 0 && wprime > 0) results.push({ cp, wprime });    }
   }
 
   if (!results.length) return;
