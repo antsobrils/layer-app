@@ -217,6 +217,7 @@ if(_p.get('coach')){
   document.getElementById('nav-messages').href=`messages.html?coach=${COACH_ID}`;
   document.getElementById('nav-macro').href=`macro.html?coach=${COACH_ID}`;
   document.getElementById('nav-athletes').href=`athletes.html?coach=${COACH_ID}`;
+  document.getElementById('nav-zones').href=`zones.html?coach=${COACH_ID}`;
 }
 const headers={'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`};
 const STREAM_COLORS={sleep:{line:'#4dc99a',fill:'rgba(77,201,154,0.08)'},motivation:{line:'#f0a830',fill:'rgba(240,168,48,0.08)'},stress:{line:'#f07070',fill:'rgba(240,112,112,0.08)'},readiness:{line:'#7B8FF0',fill:'rgba(123,143,240,0.08)'}};
@@ -269,9 +270,9 @@ async function loadChart(){
     if(q)dateMap[r.date][q.category]=r.score;
   });
 
-  // Fetch FTP/CP/W' history from Supabase
-  const metricsHistory=await api(`athlete_metrics_history?athlete_id=eq.${currentAthlete.id}&date=gte.${startStr}&order=date.asc`)||[];
-  console.log('Metrics history fetched:', metricsHistory, 'startStr:', startStr);
+  // Fetch ALL FTP/CP/W' history from Supabase (no date filter so we get full history)
+  const metricsHistory=await api(`athlete_metrics_history?athlete_id=eq.${currentAthlete.id}&order=date.asc`)||[];
+  console.log('Metrics history:', JSON.stringify(metricsHistory));
   const metricMap={ftp:{},cp:{},wprime:{}};
   metricsHistory.forEach(r=>{if(metricMap[r.metric])metricMap[r.metric][r.date]=r.value;});
 
