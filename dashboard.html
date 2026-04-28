@@ -224,7 +224,7 @@
   </div>
   <div class="nav-section">
     <div class="nav-label">Settings</div>
-    <a class="nav-item" href="#"><div class="nav-dot"></div>Question builder</a>
+    <a class="nav-item" id="nav-questions" href="questions.html"><div class="nav-dot"></div>Question builder</a>
     <a class="nav-item" href="#"><div class="nav-dot"></div>Integrations</a>
   </div>
   <div class="sidebar-bottom">
@@ -310,6 +310,7 @@ if (_p.get('coach')) {
   document.getElementById('nav-macro').href    = `macro.html?coach=${COACH_ID}`;
   document.getElementById('nav-athletes').href = `athletes.html?coach=${COACH_ID}`;
   document.getElementById('nav-zones').href    = `zones.html?coach=${COACH_ID}`;
+  document.getElementById('nav-questions').href= `questions.html?coach=${COACH_ID}`;
 }
 
 const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
