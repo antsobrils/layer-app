@@ -276,11 +276,13 @@ async function selectAthlete(athleteId, name){
   // Fetch core questions, custom questions, and settings
   [coreQuestions, customQuestions]=await Promise.all([
     api(`questions?is_core=eq.true&order=created_at.asc`),
-    api(`athlete_questions?athlete_id=eq.${athleteId}&order=sort_order.asc,created_at.asc`),
+    api(`custom_questions?athlete_id=eq.${athleteId}&order=sort_order.asc,created_at.asc`),
   ]);
-  const settings=await api(`athlete_question_settings?athlete_id=eq.${athleteId}`);
+  if(!Array.isArray(coreQuestions)) coreQuestions=[];
+  if(!Array.isArray(customQuestions)) customQuestions=[];
+  const settings=await api(`athlete_questions?athlete_id=eq.${athleteId}`);
   settingsMap={};
-  settings.forEach(s=>settingsMap[s.question_id]=s.enabled);
+  if(Array.isArray(settings)) settings.forEach(s=>settingsMap[s.question_id]=s.enabled);
 
   renderQuestions();
 }
@@ -374,8 +376,7 @@ async function toggleCoreQuestion(questionId, enabled){
   if(card) card.classList.toggle('disabled',!enabled);
   settingsMap[questionId]=enabled;
 
-  // Upsert into athlete_question_settings
-  await fetch(`${SUPABASE_URL}/rest/v1/athlete_question_settings`,{
+  await fetch(`${SUPABASE_URL}/rest/v1/athlete_questions`,{
     method:'POST',
     headers:{...headers,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
     body:JSON.stringify({athlete_id:currentAthlete.id,question_id:questionId,enabled})
@@ -386,7 +387,7 @@ async function toggleCustomQuestion(questionId, enabled){
   const card=document.getElementById(`qcard-custom-${questionId}`);
   if(card) card.classList.toggle('disabled',!enabled);
 
-  await fetch(`${SUPABASE_URL}/rest/v1/athlete_questions?id=eq.${questionId}`,{
+  await fetch(`${SUPABASE_URL}/rest/v1/custom_questions?id=eq.${questionId}`,{
     method:'PATCH',
     headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify({enabled})
@@ -399,7 +400,7 @@ async function addQuestion(){
   const type=document.getElementById('new-q-type').value;
   if(!text){document.getElementById('new-q-text').focus();return;}
 
-  const res=await fetch(`${SUPABASE_URL}/rest/v1/athlete_questions`,{
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/custom_questions`,{
     method:'POST',
     headers:{...headers,'Content-Type':'application/json','Prefer':'return=representation'},
     body:JSON.stringify({athlete_id:currentAthlete.id,coach_id:COACH_ID,text,hint:hint||null,type,enabled:true,sort_order:customQuestions.length})
@@ -413,7 +414,7 @@ async function addQuestion(){
 
 async function deleteCustomQuestion(questionId){
   if(!confirm('Delete this question?')) return;
-  await fetch(`${SUPABASE_URL}/rest/v1/athlete_questions?id=eq.${questionId}`,{
+  await fetch(`${SUPABASE_URL}/rest/v1/custom_questions?id=eq.${questionId}`,{
     method:'DELETE', headers
   });
   customQuestions=customQuestions.filter(q=>q.id!==questionId);
@@ -438,7 +439,7 @@ async function saveEdit(){
   const type=document.getElementById('edit-q-type').value;
   if(!text) return;
 
-  await fetch(`${SUPABASE_URL}/rest/v1/athlete_questions?id=eq.${id}`,{
+  await fetch(`${SUPABASE_URL}/rest/v1/custom_questions?id=eq.${id}`,{
     method:'PATCH',
     headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify({text,hint:hint||null,type})
