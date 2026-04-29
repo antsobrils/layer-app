@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer — Integrations</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f0f0f;--bg2:#141414;--bg3:#1e1e1e;--bg4:#262626;
+    --card:#181818;--border:#242424;--border2:#333;
+    --text:#f0ede6;--text2:#b0ada6;--text3:#707068;
+    --green:#1D9E75;--green-bg:#0d2a1c;--green-text:#4dc99a;
+    --red:#E24B4A;--red-bg:#2e1515;--red-text:#f07070;
+    --amber:#d4890a;--amber-bg:#2a1e08;--amber-text:#f0a830;
+    --blue:#4A90D9;--blue-bg:#0d1f2e;--blue-text:#6ab0f0;
+    --purple:#7B74E0;--purple-bg:#1a1830;--purple-text:#a090f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;display:flex;}
+
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:28px 18px;display:flex;flex-direction:column;flex-shrink:0;position:fixed;height:100vh;}
+  .logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:36px;}
+  .logo span{color:var(--green);}
+  .nav-section{margin-bottom:24px;}
+  .nav-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-left:10px;}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--text3);margin-bottom:1px;cursor:pointer;text-decoration:none;transition:all .15s;}
+  .nav-item:hover{color:var(--text2);background:var(--bg3);}
+  .nav-item.active{background:var(--bg3);color:var(--text);}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);flex-shrink:0;}
+  .nav-item.active .nav-dot{background:var(--green);}
+  .sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:16px;}
+  .coach-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;}
+  .coach-av-wrap{position:relative;flex-shrink:0;}
+  .coach-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),#0d6e50);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+  .online-dot{position:absolute;bottom:1px;right:1px;width:8px;height:8px;background:var(--green);border-radius:50%;border:2px solid var(--bg2);}
+  .coach-name{font-size:13px;color:var(--text);font-weight:500;}
+  .coach-role{font-size:11px;color:var(--text3);}
+
+  .main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
+  .topbar{padding:28px 36px 20px;border-bottom:1px solid var(--border);}
+  .page-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--text);}
+  .page-sub{font-size:13px;color:var(--text3);margin-top:4px;line-height:1.5;}
+
+  .content{padding:32px 36px;max-width:860px;}
+
+  /* Integration card */
+  .int-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;}
+  .int-card-header{padding:20px 24px;display:flex;align-items:center;gap:16px;}
+  .int-logo{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .int-logo.tp{background:#1a2a3a;border:1px solid #2a3a4a;}
+  .int-logo.vekta{background:#1a1a2a;border:1px solid #2a2a3a;}
+  .int-logo.garmin{background:#1a2a1a;border:1px solid #2a3a2a;}
+  .int-info{flex:1;}
+  .int-name{font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px;}
+  .int-desc{font-size:13px;color:var(--text3);line-height:1.5;}
+  .int-status{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .status-badge{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 12px;border-radius:99px;}
+  .status-pending{background:var(--amber-bg);color:var(--amber-text);border:1px solid #3a2a10;}
+  .status-connected{background:var(--green-bg);color:var(--green-text);border:1px solid #1a4a30;}
+  .status-disconnected{background:var(--bg3);color:var(--text3);border:1px solid var(--border2);}
+  .status-coming{background:var(--purple-bg);color:var(--purple-text);border:1px solid #2a2a4a;}
+  .status-dot{width:6px;height:6px;border-radius:50%;}
+  .status-pending .status-dot{background:var(--amber-text);}
+  .status-connected .status-dot{background:var(--green-text);}
+  .status-disconnected .status-dot{background:var(--text3);}
+  .status-coming .status-dot{background:var(--purple-text);}
+
+  .int-body{padding:0 24px 20px;}
+  .int-divider{height:1px;background:var(--border);margin:0 24px 20px;}
+
+  /* What syncs */
+  .sync-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+  .sync-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);}
+  .sync-icon{font-size:14px;flex-shrink:0;}
+  .sync-item.inactive{color:var(--text3);opacity:0.5;}
+
+  /* Connect section */
+  .connect-section{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+  .connect-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;}
+  .connect-methods{display:flex;gap:8px;flex-wrap:wrap;}
+  .connect-btn{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 16px;font-size:13px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .connect-btn:hover{background:var(--bg4);color:var(--text);}
+  .connect-btn.primary{background:var(--green);color:#fff;border-color:var(--green);}
+  .connect-btn.primary:hover{background:#18875f;}
+  .connect-btn.disabled{opacity:0.4;cursor:not-allowed;}
+  .connect-btn.disabled:hover{background:var(--bg3);color:var(--text2);}
+
+  /* API key input */
+  .api-key-row{display:flex;gap:8px;margin-top:10px;}
+  .api-key-input{flex:1;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:monospace;outline:none;transition:border-color .2s;}
+  .api-key-input:focus{border-color:var(--green);}
+  .api-key-input::placeholder{color:var(--text3);font-family:'DM Sans',sans-serif;}
+
+  /* Athlete connections table */
+  .athlete-connections{margin-top:16px;}
+  .ac-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .ac-title{font-size:12px;font-weight:600;color:var(--text2);}
+  .ac-table{width:100%;border-collapse:collapse;}
+  .ac-table th{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+  .ac-table td{padding:10px 12px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border);}
+  .ac-table tr:last-child td{border-bottom:none;}
+  .ac-table tr:hover td{background:var(--bg3);}
+  .ac-av{width:28px;height:28px;border-radius:50%;background:var(--bg4);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text2);margin-right:8px;vertical-align:middle;}
+  .ac-status-on{color:var(--green-text);font-size:11px;font-weight:600;}
+  .ac-status-off{color:var(--text3);font-size:11px;}
+  .ac-action{font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:3px 9px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .ac-action:hover{color:var(--text2);}
+  .ac-action.sync{color:var(--green-text);border-color:var(--green);}
+
+  /* Pending notice */
+  .pending-notice{background:var(--amber-bg);border:1px solid #3a2a10;border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;}
+  .pn-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+  .pn-title{font-size:13px;font-weight:600;color:var(--amber-text);margin-bottom:3px;}
+  .pn-sub{font-size:12px;color:var(--amber-text);opacity:.8;line-height:1.5;}
+
+  /* Coming soon */
+  .coming-soon-body{padding:16px 24px 20px;}
+  .cs-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .cs-chip{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--text3);}
+
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;margin-top:28px;}
+  .section-label:first-child{margin-top:0;}
+
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">Layer<span>.</span></div>
+  <div class="nav-section">
+    <div class="nav-label">Coach</div>
+    <a class="nav-item" id="nav-roster" href="dashboard.html"><div class="nav-dot"></div>Daily roster</a>
+    <a class="nav-item" id="nav-messages" href="messages.html"><div class="nav-dot"></div>Messages</a>
+    <a class="nav-item" id="nav-macro" href="macro.html"><div class="nav-dot"></div>Macro trends</a>
+    <a class="nav-item" id="nav-athletes" href="athletes.html"><div class="nav-dot"></div>Athlete profiles</a>
+    <a class="nav-item" id="nav-zones" href="zones.html"><div class="nav-dot"></div>Zones &amp; power</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Settings</div>
+    <a class="nav-item" id="nav-questions" href="questions.html"><div class="nav-dot"></div>Question builder</a>
+    <a class="nav-item active" id="nav-integrations" href="integrations.html"><div class="nav-dot"></div>Integrations</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="coach-chip">
+      <div class="coach-av-wrap">
+        <div class="coach-av" id="coach-av">?</div>
+        <div class="online-dot"></div>
+      </div>
+      <div>
+        <div class="coach-name" id="coach-name">Loading…</div>
+        <div class="coach-role">Layer · Coach</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">Integrations</div>
+    <div class="page-sub">Connect your coaching tools to Layer. Data syncs automatically once connected.</div>
+  </div>
+
+  <div class="content" id="content">
+
+    <div class="section-label">Training platforms</div>
+
+    <!-- Training Peaks -->
+    <div class="int-card">
+      <div class="int-card-header">
+        <div class="int-logo tp">🏔</div>
+        <div class="int-info">
+          <div class="int-name">Training Peaks</div>
+          <div class="int-desc">Sync planned workouts, completed sessions, TSS, CTL, ATL, and Form for each athlete.</div>
+        </div>
+        <div class="int-status">
+          <div class="status-badge status-pending">
+            <div class="status-dot"></div>
+            API approval pending
+          </div>
+        </div>
+      </div>
+
+      <div class="int-divider"></div>
+      <div class="int-body">
+
+        <!-- Pending notice -->
+        <div class="pending-notice" style="margin-bottom:16px;">
+          <div class="pn-icon">⏳</div>
+          <div>
+            <div class="pn-title">API access request submitted</div>
+            <div class="pn-sub">Training Peaks API access is pending approval. Typically takes 7–10 business days. Once approved this page will activate and athletes can connect their accounts.</div>
+          </div>
+        </div>
+
+        <!-- What will sync -->
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">What will sync</div>
+        <div class="sync-grid" style="margin-bottom:16px;">
+          <div class="sync-item inactive">📅 Planned workouts (today)</div>
+          <div class="sync-item inactive">✅ Completed workouts (yesterday)</div>
+          <div class="sync-item inactive">📊 TSS / CTL / ATL / Form</div>
+          <div class="sync-item inactive">⚡ FTP &amp; power zones</div>
+        </div>
+
+        <!-- Connection options — disabled until approved -->
+        <div class="connect-section">
+          <div class="connect-title">Connect an athlete</div>
+          <div class="connect-methods">
+            <button class="connect-btn disabled" onclick="showPendingMsg()">
+              🔐 Connect via OAuth
+            </button>
+            <button class="connect-btn disabled" onclick="showPendingMsg()">
+              🔑 Connect via API key
+            </button>
+          </div>
+          <div id="tp-pending-msg" style="display:none;font-size:12px;color:var(--amber-text);margin-top:10px;">
+            Training Peaks API approval is still pending. Check back once access is granted.
+          </div>
+        </div>
+
+        <!-- Athlete connection table — placeholder -->
+        <div class="athlete-connections">
+          <div class="ac-title" style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:10px;">Athlete connections</div>
+          <div id="tp-athlete-table">
+            <div style="font-size:13px;color:var(--text3);font-style:italic;">No athletes connected yet — available once API access is approved.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Vekta -->
+    <div class="int-card">
+      <div class="int-card-header">
+        <div class="int-logo vekta">⚡</div>
+        <div class="int-info">
+          <div class="int-name">Vekta</div>
+          <div class="int-desc">Sync structured workout data and training metrics from Vekta directly into athlete dashboards.</div>
+        </div>
+        <div class="int-status">
+          <div class="status-badge status-coming">
+            <div class="status-dot"></div>
+            Coming soon
+          </div>
+        </div>
+      </div>
+      <div class="int-divider"></div>
+      <div class="int-body">
+        <div class="sync-grid">
+          <div class="sync-item inactive">📅 Planned sessions</div>
+          <div class="sync-item inactive">✅ Completed sessions</div>
+          <div class="sync-item inactive">📊 Training load metrics</div>
+          <div class="sync-item inactive">⚡ Power data</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:28px;">Wearables &amp; devices</div>
+
+    <!-- Garmin -->
+    <div class="int-card">
+      <div class="int-card-header">
+        <div class="int-logo garmin">🟢</div>
+        <div class="int-info">
+          <div class="int-name">Garmin Connect</div>
+          <div class="int-desc">Pull HRV, sleep, and recovery data from Garmin devices to enrich daily check-ins.</div>
+        </div>
+        <div class="int-status">
+          <div class="status-badge status-coming">
+            <div class="status-dot"></div>
+            Coming soon
+          </div>
+        </div>
+      </div>
+      <div class="int-divider"></div>
+      <div class="int-body">
+        <div class="sync-grid">
+          <div class="sync-item inactive">💤 Sleep quality &amp; HRV</div>
+          <div class="sync-item inactive">❤️ Resting heart rate</div>
+          <div class="sync-item inactive">🔋 Body battery</div>
+          <div class="sync-item inactive">🏃 Activity data</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:28px;">Manual import</div>
+
+    <!-- CSV import -->
+    <div class="int-card">
+      <div class="int-card-header">
+        <div class="int-logo" style="background:var(--bg3);border:1px solid var(--border2);font-size:20px;">📁</div>
+        <div class="int-info">
+          <div class="int-name">Training Peaks CSV import</div>
+          <div class="int-desc">Export a CSV from Training Peaks and upload it here to populate workout history, TSS, and PMC data for any athlete.</div>
+        </div>
+        <div class="int-status">
+          <div class="status-badge status-connected">
+            <div class="status-dot"></div>
+            Available now
+          </div>
+        </div>
+      </div>
+      <div class="int-divider"></div>
+      <div class="int-body">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6;">
+          In Training Peaks go to <strong style="color:var(--text2);">Athlete → Export</strong> and download the CSV. Then select the athlete and upload below.
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <select id="csv-athlete-select" style="background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;">
+            <option value="">— Select athlete —</option>
+          </select>
+          <button class="connect-btn primary" onclick="document.getElementById('csv-file-input').click()">
+            Upload CSV
+          </button>
+          <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleCSVUpload(event)"/>
+        </div>
+        <div id="csv-status" style="font-size:12px;color:var(--text3);margin-top:10px;min-height:18px;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://eaqlyzvggjewavyxpbwk.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcWx5enZnZ2pld2F2eXhwYndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTI4NTgsImV4cCI6MjA5MjA2ODg1OH0.0zCSvFLEzQqmro9YxF-VjuAAHNfs1gWZbyqH22YQwJ8';
+const _p=new URLSearchParams(window.location.search);
+const COACH_ID=_p.get('coach')||'051dbc7b-15ad-45e0-bdb1-5bf19a7144c8';
+const headers={'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`};
+
+if(_p.get('coach')){
+  document.getElementById('nav-roster').href      =`dashboard.html?coach=${COACH_ID}`;
+  document.getElementById('nav-messages').href    =`messages.html?coach=${COACH_ID}`;
+  document.getElementById('nav-macro').href       =`macro.html?coach=${COACH_ID}`;
+  document.getElementById('nav-athletes').href    =`athletes.html?coach=${COACH_ID}`;
+  document.getElementById('nav-zones').href       =`zones.html?coach=${COACH_ID}`;
+  document.getElementById('nav-questions').href   =`questions.html?coach=${COACH_ID}`;
+  document.getElementById('nav-integrations').href=`integrations.html?coach=${COACH_ID}`;
+}
+
+function getInitials(n){return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);}
+
+async function init(){
+  const coaches=await fetch(`${SUPABASE_URL}/rest/v1/coaches?id=eq.${COACH_ID}`,{headers}).then(r=>r.json());
+  if(coaches&&coaches[0]){
+    document.getElementById('coach-name').textContent=coaches[0].name;
+    document.getElementById('coach-av').textContent=getInitials(coaches[0].name);
+  }
+
+  // Populate CSV athlete selector
+  const athletes=await fetch(`${SUPABASE_URL}/rest/v1/athletes?coach_id=eq.${COACH_ID}&order=name.asc`,{headers}).then(r=>r.json());
+  const sel=document.getElementById('csv-athlete-select');
+  (athletes||[]).forEach(a=>{
+    const opt=document.createElement('option');
+    opt.value=a.id;
+    opt.textContent=a.name;
+    sel.appendChild(opt);
+  });
+}
+
+function showPendingMsg(){
+  const msg=document.getElementById('tp-pending-msg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',4000);
+}
+
+function handleCSVUpload(event){
+  const file=event.target.files[0];
+  const athleteId=document.getElementById('csv-athlete-select').value;
+  const status=document.getElementById('csv-status');
+  if(!file){return;}
+  if(!athleteId){status.textContent='Please select an athlete first.';status.style.color='var(--red-text)';return;}
+
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    const content=e.target.result;
+    let imported=0;
+    const lines=content.split('\n');
+    const header=lines[0]?.split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+
+    if(!header){status.textContent='Could not parse CSV.';return;}
+
+    const today=new Date().toISOString().split('T')[0];
+
+    lines.slice(1).forEach(line=>{
+      if(!line.trim())return;
+      const cols=line.split(',').map(c=>c.trim().replace(/"/g,''));
+      const row={};
+      header.forEach((h,i)=>row[h]=cols[i]);
+
+      // Map common TP export columns
+      const ftpVal=parseFloat(row['ftp']||row['functional threshold power']||'');
+      const tssVal=parseFloat(row['tss']||row['training stress score']||'');
+      const ctlVal=parseFloat(row['ctl']||row['chronic training load']||'');
+      const atlVal=parseFloat(row['atl']||row['acute training load']||'');
+      const date=row['date']||today;
+
+      const entries=[];
+      if(ftpVal>0) entries.push({athlete_id:athleteId,date,metric:'ftp',value:ftpVal});
+      if(tssVal>0) entries.push({athlete_id:athleteId,date,metric:'tss',value:tssVal});
+      if(ctlVal>0) entries.push({athlete_id:athleteId,date,metric:'ctl',value:ctlVal});
+      if(atlVal>0) entries.push({athlete_id:athleteId,date,metric:'atl',value:atlVal});
+
+      if(entries.length){
+        imported+=entries.length;
+        fetch(`${SUPABASE_URL}/rest/v1/athlete_metrics_history`,{
+          method:'POST',
+          headers:{...headers,'Content-Type':'application/json','Prefer':'return=minimal'},
+          body:JSON.stringify(entries)
+        }).catch(console.error);
+      }
+    });
+
+    if(imported>0){
+      status.textContent=`✓ Imported ${imported} data points successfully.`;
+      status.style.color='var(--green-text)';
+    } else {
+      status.textContent='File parsed but no recognisable Training Peaks columns found. Check the export format.';
+      status.style.color='var(--amber-text)';
+    }
+    event.target.value='';
+    setTimeout(()=>{status.textContent='';},5000);
+  };
+  reader.readAsText(file);
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>
